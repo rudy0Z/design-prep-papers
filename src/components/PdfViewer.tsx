@@ -133,8 +133,10 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
     return () => window.removeEventListener('resize', updateWidth);
   }, []);
 
-  // Reset scroll to top when switching papers
+  // Reset scroll to top and auto-scroll lock when switching papers
   useEffect(() => {
+    isAutoScrollingRef.current = false;
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     const container = containerRef.current;
     if (container) {
       container.scrollTop = 0;
@@ -246,37 +248,40 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
     });
   }, [pdfDoc]);
 
-  // Page-to-Scroll sync: When pageNumber changes (header arrows / session restore), scroll to that page
-  // We use exact cumulative scrollTop calculated from pre-loaded page heights (not scrollIntoView)
-  // so it works even before pages are painted in viewport.
+  // Page-to-Scroll sync: scroll container to target page when pageNumber changes
+  // We wait for ratiosReady AND use a DOM querySelector so we get the actual rendered element position.
   useEffect(() => {
-    if (!pdfDoc || !ratiosReady || pageNumber <= 1) return;
+    if (!pdfDoc || !ratiosReady) return;
+
     const container = containerRef.current;
     if (!container) return;
 
-    // Small delay to let the DOM finish mounting page nodes after ratios load
+    // Delay to let DOM finish mounting/updating page heights
     const t = setTimeout(() => {
-      let cumulative = 24; // initial padding-top of 24px
-      const GAP = 24; // marginBottom on each page wrapper
-      for (let pg = 1; pg < pageNumber; pg++) {
-        const ratio = pageAspectRatios[pg] ?? 1.414;
-        const pageHeight = pageWidth / ratio;
-        cumulative += pageHeight + GAP;
-      }
+      const targetElement = container.querySelector(`[data-page-number="${pageNumber}"]`) as HTMLElement | null;
+      if (!targetElement) return;
+
+      // Compute scrollTop as: element's offsetTop relative to the scroll container
+      const targetTop = targetElement.offsetTop;
+      const currentTop = container.scrollTop;
+
+      if (Math.abs(targetTop - currentTop) < 20) return; // already there
+
       isAutoScrollingRef.current = true;
-      container.scrollTop = cumulative;
+      container.scrollTop = targetTop;
+
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
       scrollTimeoutRef.current = setTimeout(() => {
         isAutoScrollingRef.current = false;
       }, 600);
-    }, 80);
+    }, 300);
 
     return () => clearTimeout(t);
   }, [pageNumber, pdfDoc, ratiosReady]);
 
   // Scroll-to-Page sync: When user scrolls, detect which page is dominant and update pageNumber
   const handleScroll = () => {
-    if (isLoading || !pdfDoc || isAutoScrollingRef.current) return;
+    if (isLoading || !pdfDoc || !ratiosReady || isAutoScrollingRef.current) return;
     const container = containerRef.current;
     if (!container) return;
 
