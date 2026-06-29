@@ -495,6 +495,10 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
       canvas.width = width;
       canvas.height = height;
 
+      // Paint solid white background to prevent transparent PDF content showing dark backgrounds
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
       renderTask = page.render({ canvasContext: ctx, canvas, viewport: scaledViewport });
       renderTask.promise.then(() => {
         if (!isCancelled) setIsRendered(true);
