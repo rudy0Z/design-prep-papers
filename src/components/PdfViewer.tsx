@@ -434,7 +434,10 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
     pdfDoc.getPage(pageNum).then((page) => {
       const viewport = page.getViewport({ scale: 1.0 });
       if (isCurrent && viewport.width && viewport.height) {
-        setAspectRatio(viewport.width / viewport.height);
+        const ratio = viewport.width / viewport.height;
+        if (!isNaN(ratio) && isFinite(ratio) && ratio > 0) {
+          setAspectRatio(ratio);
+        }
       }
     }).catch((err) => {
       console.error(`Error loading aspect ratio for page ${pageNum}:`, err);
@@ -442,11 +445,12 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
     return () => { isCurrent = false; };
   }, [pdfDoc, pageNum]);
 
-  const height = width / aspectRatio;
+  const activeRatio = isNaN(aspectRatio) || aspectRatio <= 0 ? 1.414 : aspectRatio;
+  const height = width / activeRatio;
 
   // Debounced dimensions to prevent rapidly re-rendering canvas on drag zoom
   const [debouncedWidth, setDebouncedWidth] = useState(width);
-  const debouncedHeight = debouncedWidth / aspectRatio;
+  const debouncedHeight = debouncedWidth / activeRatio;
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -502,15 +506,19 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
       if (!ctx) return;
 
       const viewport = page.getViewport({ scale: 1.0 });
-      const scale = debouncedWidth / viewport.width;
-      const scaledViewport = page.getViewport({ scale });
+      const viewWidth = viewport.width || 800;
+      const scale = debouncedWidth / viewWidth;
+      const scaledViewport = page.getViewport({ scale: isNaN(scale) || scale <= 0 ? 1.0 : scale });
 
-      canvas.width = debouncedWidth;
-      canvas.height = debouncedHeight;
+      const finalWidth = isNaN(debouncedWidth) || debouncedWidth <= 0 ? 800 : debouncedWidth;
+      const finalHeight = isNaN(debouncedHeight) || debouncedHeight <= 0 ? 565 : debouncedHeight;
+
+      canvas.width = finalWidth;
+      canvas.height = finalHeight;
 
       // Paint solid white background to prevent transparent PDF content showing dark backgrounds
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, debouncedWidth, debouncedHeight);
+      ctx.fillRect(0, 0, finalWidth, finalHeight);
 
       renderTask = page.render({ canvasContext: ctx, canvas, viewport: scaledViewport });
       renderTask.promise.then(() => {
