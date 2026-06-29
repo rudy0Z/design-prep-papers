@@ -59,6 +59,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
   const [activeTab, setActiveTab] = useState<string>(sections[0]?.id ?? '');
   const [revealKeys, setRevealKeys] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
 
   const isPartB = activeTab === 'part-b';
   const activeSection = sections.find(s => s.id === activeTab) ?? sections[0];
@@ -241,7 +242,8 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                             onClick={(e) => { e.stopPropagation(); onToggleFlag(qid); }}
                             className={`flag-action-btn ${isFlagged ? 'flagged' : ''}`}
                             title={isFlagged ? 'Flagged for review' : 'Flag for review'}
-                            style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', color: isFlagged ? 'var(--warning, #ffaa00)' : 'var(--muted)' }}
+                            aria-label={isFlagged ? `Question ${qid} flagged. Tap to unflag.` : `Flag question ${qid} for review`}
+                            style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', color: isFlagged ? 'var(--warning, #ffaa00)' : 'var(--muted)' }}
                           >
                             <Flag size={11} fill={isFlagged ? 'var(--warning, #ffaa00)' : 'transparent'} />
                           </button>
@@ -290,9 +292,12 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                                   );
                                 })}
                               </div>
-                              {submitted && correctKey && correct === false && (
-                                <div className="verify-note result-bad">
-                                  {`✗ Key: ${Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? correctKey.map((k: string[]) => k.join('+')).join('/') : (correctKey as string[]).join('+')) : correctKey}`}
+                              {submitted && correctKey && (
+                                <div className={`verify-note result-${correct ? 'ok' : 'bad'}`}>
+                                  {correct 
+                                    ? '✓ Correct' 
+                                    : `✗ Key: ${Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? correctKey.map((k: string[]) => k.join('+')).join('/') : (correctKey as string[]).join('+')) : correctKey}`
+                                  }
                                 </div>
                               )}
                             </>
@@ -368,7 +373,8 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                           onClick={(e) => { e.stopPropagation(); onToggleFlag(qid); }}
                           className={`flag-action-btn ${isFlagged ? 'flagged' : ''}`}
                           title={isFlagged ? 'Flagged for review' : 'Flag for review'}
-                          style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '0', display: 'inline-flex', alignItems: 'center', color: isFlagged ? 'var(--warning, #ffaa00)' : 'var(--muted-2)' }}
+                          aria-label={isFlagged ? `Question ${qid} flagged. Tap to unflag.` : `Flag question ${qid} for review`}
+                          style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', color: isFlagged ? 'var(--warning, #ffaa00)' : 'var(--muted-2)' }}
                         >
                           <Flag size={10} fill={isFlagged ? 'var(--warning, #ffaa00)' : 'transparent'} />
                         </button>
@@ -425,9 +431,12 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                               );
                             })}
                           </div>
-                          {submitted && correctKey && correct === false && (
-                            <span className="verify-note text-[10px] result-bad">
-                              {`✗ Key: ${Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? correctKey.map((k: string[]) => k.join('+')).join('/') : (correctKey as string[]).join('+')) : correctKey}`}
+                          {submitted && correctKey && (
+                            <span className={`verify-note text-[10px] result-${correct ? 'ok' : 'bad'}`}>
+                              {correct 
+                                ? '✓ Correct' 
+                                : `✗ Key: ${Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? correctKey.map((k: string[]) => k.join('+')).join('/') : (correctKey as string[]).join('+')) : correctKey}`
+                              }
                             </span>
                           )}
                         </div>
@@ -445,12 +454,9 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
       <div className="sheet-footer">
         {!submitted ? (
           <button 
-            onClick={() => {
-              if (window.confirm('Check answers now? This will lock all input and display your graded performance analytics.')) {
-                setSubmitted(true);
-              }
-            }}
+            onClick={() => setShowConfirmSubmit(true)}
             className="submit-practice-btn"
+            aria-label="Grade response sheet and check answers"
           >
             <Check size={14} />
             <span>Check Answers</span>
@@ -648,6 +654,35 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
             <div className="report-modal-footer">
               <button onClick={() => setShowReport(false)} className="close-report-btn">
                 Close & Review Responses
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showConfirmSubmit && (
+        <div className="report-modal-overlay animate-fade-in" style={{ zIndex: 110 }}>
+          <div className="report-modal-card animate-zoom-in" style={{ maxWidth: '400px', padding: '20px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)', margin: '0 0 8px' }}>Grade Practice Sheet?</h3>
+            <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 16px', lineHeight: 1.5 }}>
+              This will lock all inputs to prevent further changes, check your selections against the official answer keys, and open your performance analytics report.
+            </p>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={() => setShowConfirmSubmit(false)} 
+                className="sheet-reset-btn"
+                style={{ width: 'auto', padding: '0 12px', height: '30px' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  setShowConfirmSubmit(false);
+                  setSubmitted(true);
+                }} 
+                className="submit-practice-btn"
+                style={{ width: 'auto', padding: '0 14px', height: '30px' }}
+              >
+                Grade Sheet
               </button>
             </div>
           </div>

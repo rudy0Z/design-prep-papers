@@ -26,6 +26,7 @@
   --radius-sm:       4px;
   --radius:          6px;
   --radius-md:       8px;
+  --radius-lg:       12px;
 }
 
 /* ─── Reset ─────────────────────────────────────────────────────── */
@@ -577,9 +578,9 @@ button:active { opacity: 0.8; }
   border-right: 1px solid var(--border);
 }
 .workspace-grid.omr-mode-dock .omr-pane {
-  flex: 0 0 250px;
-  min-width: 250px;
-  max-width: 250px;
+  flex: 0 0 280px;
+  min-width: 280px;
+  max-width: 280px;
   background: var(--surface);
   border-left: 1px solid var(--border);
   transition: flex .2s ease;
@@ -912,8 +913,10 @@ button:active { opacity: 0.8; }
   .dashboard-topbar { padding: 0 16px; }
   .dashboard-body { padding: 20px 16px; }
   .workspace-grid { flex-direction: column; }
-  .workspace-grid.omr-mode-full .pdf-pane, .workspace-grid.omr-mode-full .omr-pane { flex-basis: 50%; min-width: 0; }
-  .workspace-grid.omr-mode-dock .pdf-pane, .workspace-grid.omr-mode-dock .omr-pane { flex-basis: 75%/25%; min-width: 0; }
+  .workspace-grid.omr-mode-full .pdf-pane { flex-basis: 60%; min-width: 0; }
+  .workspace-grid.omr-mode-full .omr-pane { flex-basis: 40%; min-width: 0; }
+  .workspace-grid.omr-mode-dock .pdf-pane { flex-basis: 70%; min-width: 0; }
+  .workspace-grid.omr-mode-dock .omr-pane { flex-basis: 30%; min-width: 0; }
   .studio-header { grid-template-columns: 1fr; height: auto; padding: 8px; }
   .toolbar-cluster.right { justify-content: flex-start; flex-wrap: wrap; }
 }
@@ -1384,5 +1387,46 @@ button:active { opacity: 0.8; }
   opacity: 0.8;
   transform: scale(1.15);
 }
+
+/* Accessibility Focus Ring Styles */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Active Draw armed page container outline glow */
+.pdf-frame.border-armed {
+  outline: 1px solid var(--accent) !important;
+  box-shadow: 0 8px 32px rgba(120, 182, 158, 0.2), 0 0 0 1px rgba(120, 182, 158, 0.35) !important;
+}
+
+/* Custom Paper dropdown items hover/active states */
+.dropdown-option:hover {
+  background: var(--surface-hover) !important;
+  color: var(--text) !important;
+}
+.dropdown-option.active {
+  background: var(--surface-muted) !important;
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
+/* Timer visual states (green run vs warning pause) */
+.timer-pill.timer-running {
+  border-color: var(--ok) !important;
+  color: var(--ok) !important;
+  box-shadow: 0 0 8px var(--accent-dim);
+}
+.timer-pill.timer-running strong {
+  color: var(--ok) !important;
+}
+.timer-pill.timer-paused {
+  border-color: var(--warning) !important;
+  color: var(--warning) !important;
+}
+.timer-pill.timer-paused strong {
+  color: var(--warning) !important;
+}
+
 
 

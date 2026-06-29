@@ -52,6 +52,7 @@ export const Workspace: React.FC = () => {
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [omrMode, setOmrMode] = useState<'page' | 'full'>('page');
   const [flaggedQuestions, setFlaggedQuestions] = useState<string[]>([]);
+  const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
   
   const currentPaper = papers.find((p) => p.id === activePaperId);
 
@@ -348,33 +349,41 @@ export const Workspace: React.FC = () => {
   }, [handleRedo, handleUndo, brushColor, setBrushColor, setDrawMode]);
 
   const handleClear = () => {
-    if (window.confirm('Clear all drawings on this page?')) {
-      setRedoStrokes([]);
-      handleStrokesChange([]);
-    }
+    setConfirmModal({
+      title: 'Clear Page Drawings?',
+      message: 'This will permanently delete all vector annotation lines drawn on the current page. This action cannot be undone.',
+      onConfirm: () => {
+        setRedoStrokes([]);
+        handleStrokesChange([]);
+      }
+    });
   };
 
-  const handleResetSession = async () => {
+  const handleResetSession = () => {
     if (!activePaperId) return;
-    if (window.confirm('This wipes OMR answers, timers, and annotations for the current paper. Continue?')) {
-      setIsSaving(true);
-      await storage.resetSession(activePaperId);
-      setAnswers({});
-      setVerifiedSections([]);
-      setStrokes([]);
-      setRedoStrokes([]);
-      setQuestionTimes({});
-      setSubmitted(false);
-      setFlaggedQuestions([]);
-      setTimerElapsed(0);
-      setTimerRemaining(timerDuration);
-      setIsTimerRunning(false);
-      localStorage.removeItem(`timer_remaining_${activePaperId}`);
-      localStorage.removeItem(`timer_elapsed_${activePaperId}`);
-      localStorage.setItem(`timer_running_${activePaperId}`, 'false');
-      setPageNumber(1);
-      setIsSaving(false);
-    }
+    setConfirmModal({
+      title: 'Reset Practice Session?',
+      message: 'This will permanently clear your answer sheets, time trackers, and canvas sketches for the current paper. This action cannot be undone.',
+      onConfirm: async () => {
+        setIsSaving(true);
+        await storage.resetSession(activePaperId);
+        setAnswers({});
+        setVerifiedSections([]);
+        setStrokes([]);
+        setRedoStrokes([]);
+        setQuestionTimes({});
+        setSubmitted(false);
+        setFlaggedQuestions([]);
+        setTimerElapsed(0);
+        setTimerRemaining(timerDuration);
+        setIsTimerRunning(false);
+        localStorage.removeItem(`timer_remaining_${activePaperId}`);
+        localStorage.removeItem(`timer_elapsed_${activePaperId}`);
+        localStorage.setItem(`timer_running_${activePaperId}`, 'false');
+        setPageNumber(1);
+        setIsSaving(false);
+      }
+    });
   };
 
   const handleTimerModeChange = (mode: 'stopwatch' | 'timer') => { setTimerMode(mode); localStorage.setItem(`timer_mode_${activePaperId}`, mode); };
@@ -498,6 +507,36 @@ export const Workspace: React.FC = () => {
           ) : null}
         </aside>
       </div>
+
+      {confirmModal && (
+        <div className="report-modal-overlay animate-fade-in" style={{ zIndex: 110 }}>
+          <div className="report-modal-card animate-zoom-in" style={{ maxWidth: '400px', padding: '20px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)', margin: '0 0 8px' }}>{confirmModal.title}</h3>
+            <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 16px', lineHeight: 1.5 }}>
+              {confirmModal.message}
+            </p>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={() => setConfirmModal(null)} 
+                className="sheet-reset-btn"
+                style={{ width: 'auto', padding: '0 12px', height: '30px' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  confirmModal.onConfirm();
+                  setConfirmModal(null);
+                }} 
+                className="submit-practice-btn"
+                style={{ width: 'auto', padding: '0 14px', height: '30px' }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

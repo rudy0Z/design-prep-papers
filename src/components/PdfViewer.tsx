@@ -65,6 +65,56 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
     return () => container.removeEventListener('wheel', handleWheel);
   }, []);
 
+  // Touch gesture support for pinch-to-zoom (Tablets/Phones)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let startDistance = 0;
+    let startZoom = 1.0;
+
+    const getDistance = (touches: TouchList) => {
+      if (touches.length < 2) return 0;
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * Math.max(1, dx) + dy * Math.max(1, dy));
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        startDistance = getDistance(e.touches);
+        startZoom = zoomScale;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && startDistance > 0) {
+        e.preventDefault();
+        const currentDistance = getDistance(e.touches);
+        const ratio = currentDistance / Math.max(1, startDistance);
+        setZoomScale(() => {
+          const next = startZoom * ratio;
+          return Math.max(0.4, Math.min(next, 3.0));
+        });
+      }
+    };
+
+    const handleTouchEnd = () => {
+      startDistance = 0;
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: false });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [zoomScale]);
+
   // Measure container width for responsive scaling
   useEffect(() => {
     const container = containerRef.current;
@@ -296,13 +346,38 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
         )}
       </div>
 
+      {/* Page Number Overlay fixed top-left */}
+      {pdfDoc && (
+        <div 
+          className="page-overlay-badge mono animate-fade-in"
+          style={{
+            position: 'absolute',
+            top: '16px',
+            left: '16px',
+            background: 'var(--surface-muted)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius)',
+            padding: '6px 10px',
+            fontSize: '10px',
+            fontWeight: 600,
+            color: 'var(--text-secondary)',
+            zIndex: 40,
+            pointerEvents: 'none',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+          }}
+        >
+          Page {pageNumber} / {pdfDoc.numPages}
+        </div>
+      )}
+
       {/* Floating Zoom Widget */}
       {pdfDoc && (
-        <div className="zoom-widget animate-fade-in">
+        <div className="zoom-widget animate-fade-in" style={{ right: '20px' }}>
           <button 
             onClick={() => setZoomScale(prev => Math.max(0.4, prev - 0.1))}
             title="Zoom Out"
             className="zoom-btn"
+            aria-label="Zoom Out"
           >
             -
           </button>
@@ -311,6 +386,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
             onClick={() => setZoomScale(prev => Math.min(3.0, prev + 0.1))}
             title="Zoom In"
             className="zoom-btn"
+            aria-label="Zoom In"
           >
             +
           </button>
@@ -318,6 +394,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
             onClick={() => setZoomScale(1.0)}
             title="Reset Zoom"
             className="zoom-reset-btn"
+            aria-label="Reset zoom level to default"
           >
             Reset
           </button>
@@ -442,7 +519,7 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
     <div
       ref={containerRef}
       data-page-number={pageNum}
-      className={`pdf-page-wrapper relative pdf-frame select-none`}
+      className={`pdf-page-wrapper relative pdf-frame select-none ${drawMode && isActive ? 'cursor-crosshair border-armed' : ''}`}
       style={{ 
         width: `${width}px`, 
         height: `${height}px`, 
