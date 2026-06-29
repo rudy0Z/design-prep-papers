@@ -129,6 +129,14 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
     return () => window.removeEventListener('resize', updateWidth);
   }, []);
 
+  // Reset scroll to top when switching papers
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      container.scrollTop = 0;
+    }
+  }, [pdfUrl]);
+
   // Fetch the PDF
   useEffect(() => {
     if (!pdfUrl) return;
@@ -426,6 +434,20 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
   const [localStrokes, setLocalStrokes] = useState<Stroke[]>([]);
   const [isRendered, setIsRendered] = useState(false);
 
+  // Debounce the visibility flag to prevent rendering canvases during fast scroll swipes
+  const [debouncedIsVisible, setDebouncedIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (isVisible) {
+      const handler = setTimeout(() => {
+        setDebouncedIsVisible(true);
+      }, 150);
+      return () => clearTimeout(handler);
+    } else {
+      setDebouncedIsVisible(false);
+    }
+  }, [isVisible]);
+
   // Aspect ratio state computed per page loaded from PDF document
   const [aspectRatio, setAspectRatio] = useState<number>(1.414);
 
@@ -497,7 +519,7 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
 
   // Render canvas when page becomes visible in window viewport
   useEffect(() => {
-    if (!isVisible || !pdfDoc) return;
+    if (!debouncedIsVisible || !pdfDoc) return;
     let isCancelled = false;
     let renderTask: any = null;
 
@@ -539,7 +561,7 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
         try { renderTask.cancel(); } catch (_) {}
       }
     };
-  }, [isVisible, pdfDoc, pageNum, debouncedWidth, debouncedHeight]);
+  }, [debouncedIsVisible, pdfDoc, pageNum, debouncedWidth, debouncedHeight]);
 
   const currentStrokes = isActive ? activeStrokes : localStrokes;
   const currentSetStrokes = isActive ? setActiveStrokes : (newStrokes: Stroke[]) => {
