@@ -373,12 +373,14 @@ export const Workspace: React.FC = () => {
             <PdfViewer
               pdfUrl={currentPaper.pdfPath}
               pageNumber={pageNumber}
+              setPageNumber={handlePageChange}
               setNumPages={setNumPages}
               drawMode={drawMode}
               brushColor={brushColor}
               brushWidth={brushWidth}
               strokes={strokes}
               setStrokes={handleStrokesChange}
+              activePaperId={activePaperId}
             />
           ) : null}
         </section>
