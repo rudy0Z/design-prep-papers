@@ -1,67 +1,60 @@
-# Design Prep Papers 🎨📝
+# Design Prep Papers 🎨
 
-A premium, highly interactive exam cockpit designed specifically for design students prepping for entrance exams like **UCEED**, **CEED**, and **NID**.
+A simple, open-source archive of design entrance exam question papers and answer keys. This repository serves as a centralized collection for students preparing for design exams like **UCEED** and **CEED**, with plans to expand to other design exams in the future.
 
-Built with a **Notion-meets-Linear** design aesthetic—prioritizing restraint, extreme hierarchy, and absolute visual clarity over generic "AI-site" decorations.
+To help you practice directly, this archive includes a built-in interactive prep workspace. You can open any paper in your browser, draw/sketch annotations directly on top of the sheets, fill out OMR responses, and check your grades in real-time.
 
-## 🚀 Live Demo
-Deploy and check out the live app hosted on Vercel: **[design-prep-papers.vercel.app](https://design-prep-papers.vercel.app)** *(Link updated upon deployment)*
-
----
-
-## ✨ Features
-
-### 📐 1. PDF Canvas & Drawing Layer
-* **Zero-Network PDF Transport**: Fetches PDFs directly as binary arrays to bypass server chunk interception, ensuring robust performance.
-* **Pixel-Perfect Canvas Annotation**: Seamless vector-based overlay drawing layer using canvas, optimized for tablet, mouse, and stylus devices.
-* **Precision Controls**: Adjust brush stroke size and swap between accent-colored ink, clear annotations, and custom grid tools.
-
-### 📝 2. Side-by-Side Interactive OMR Sheet
-* **Mock Exam Modes**: Designed to replicate actual exam patterns (Part A & Part B).
-* **Multi-Format Input Support**: Fully supports NAT (Numerical Answer Type), MSQ (Multiple Select Questions), and MCQ (Multiple Choice Questions) inputs.
-* **Collapsible Workspace Layout**: Responsive layout with a collapsible secondary OMR panel to maximize reading canvas real estate.
-
-### ⚡ 3. Real-Time Grading & Analytics
-* **Scoring Rules Engine**: Supports exact positive/negative markings matching official exam guidelines.
-* **Performance Dashboard**: Immediate score computation, answer sheets comparisons, and correction analysis.
-* **State Recovery & Persistence**: Answers and vector strokes are saved locally to IndexedDB/localStorage, protecting your progress from browser crashes or network drops.
+👉 **Practice Online: [design-prep-papers.vercel.app](https://design-prep-papers.vercel.app)**
 
 ---
 
-## 🛠️ Tech Stack
-* **Framework**: Next.js 16 (App Router, Turbopack)
-* **Language**: TypeScript
-* **Styling**: Vanilla CSS (CSS Variables, clean flexbox/grid layout)
-* **PDF Engine**: PDF.js (`pdfjs-dist`)
-* **State & Storage**: IndexedDB (for local drawing stroke data), LocalStorage (session data, answer sheets)
+## 📂 Papers Collection Index
+
+All papers, including official answer keys (where available), are structured cleanly inside the `public/data/` directory and can be accessed directly.
+
+### 1. UCEED (Undergraduate Common Entrance Examination for Design)
+A collection of UCEED question papers and keys from 2015 to 2026:
+* **2026**: [Question Paper](public/data/uceed/uceed-2026-q.pdf) | [Answer Key](public/data/uceed/uceed-2026-a.pdf)
+* **2025**: [Question Paper](public/data/uceed/uceed-2025-q.pdf) | [Answer Key](public/data/uceed/uceed-2025-a.pdf)
+* **2024**: [Question Paper](public/data/uceed/uceed-2024-q.pdf) | [Answer Key](public/data/uceed/uceed-2024-a.pdf)
+* **2023**: [Question Paper](public/data/uceed/uceed-2023-q.pdf) | [Answer Key](public/data/uceed/uceed-2023-a.pdf)
+* **2022**: [Question Paper](public/data/uceed/uceed-2022-q.pdf) | [Answer Key](public/data/uceed/uceed-2022-a.pdf)
+* **2021**: [Question Paper](public/data/uceed/uceed-2021-q.pdf) | [Answer Key](public/data/uceed/uceed-2021-a.pdf)
+* **2020**: [Question Paper](public/data/uceed/uceed-2020-q.pdf) | [Answer Key](public/data/uceed/uceed-2020-a.pdf)
+* **2019**: [Question Paper](public/data/uceed/uceed-2019-q.pdf) | [Answer Key](public/data/uceed/uceed-2019-a.pdf)
+* **2018**: [Question Paper](public/data/uceed/uceed-2018-q.pdf) | [Answer Key](public/data/uceed/uceed-2018-a.pdf)
+* **2017**: [Question Paper](public/data/uceed/uceed-2017-q.pdf) | [Answer Key](public/data/uceed/uceed-2017-a.pdf)
+* **2016**: [Question Paper](public/data/uceed/uceed-2016-q.pdf) | [Answer Key](public/data/uceed/uceed-2016-a.pdf)
+* **2015**: [Question Paper](public/data/uceed/uceed-2015-q.pdf) | [Answer Key](public/data/uceed/uceed-2015-a.pdf)
+
+### 2. CEED (Common Entrance Examination for Design)
+A collection of CEED question papers and keys from 2010 to 2026:
+* **2026**: [Question Paper](public/data/ceed/ceed-2026-q.pdf) | [Answer Key](public/data/ceed/ceed-2026-a.pdf)
+* **2025**: [Question Paper](public/data/ceed/ceed-2025-q.pdf) | [Answer Key](public/data/ceed/ceed-2025-a.pdf)
+* **2024**: [Question Paper](public/data/ceed/ceed-2024-q.pdf) | [Answer Key](public/data/ceed/ceed-2024-a.pdf)
+* **2023**: [Question Paper](public/data/ceed/ceed-2023-q.pdf) | [Answer Key](public/data/ceed/ceed-2023-a.pdf)
+* **2022**: [Question Paper](public/data/ceed/ceed-2022-q.pdf) | [Answer Key](public/data/ceed/ceed-2022-a.pdf)
+* **2021**: [Question Paper](public/data/ceed/ceed-2021-q.pdf) | [Answer Key](public/data/ceed/ceed-2021-a.pdf)
+* **2020**: [Question Paper](public/data/ceed/ceed-2020-q.pdf) | [Answer Key](public/data/ceed/ceed-2020-a.pdf)
+* **2019 - 2010**: Question papers for [2019](public/data/ceed/ceed-2019-q.pdf), [2018](public/data/ceed/ceed-2018-q.pdf), [2017](public/data/ceed/ceed-2017-q.pdf), [2016](public/data/ceed/ceed-2016-q.pdf), [2015](public/data/ceed/ceed-2015-q.pdf), [2014](public/data/ceed/ceed-2014-q.pdf), [2013](public/data/ceed/ceed-2013-q.pdf), [2012](public/data/ceed/ceed-2012-q.pdf), [2011](public/data/ceed/ceed-2011-q.pdf), and [2010](public/data/ceed/ceed-2010-q.pdf) are available.
 
 ---
 
-## 📦 Project Structure
-```text
-├── public/
-│   ├── data/            # Local JSON databases containing metadata and answer keys
-│   └── pdf.worker.min.mjs
-├── src/
-│   ├── app/
-│   │   ├── api/pdf/     # Safe PDF proxy bypass router
-│   │   ├── layout.tsx
-│   │   └── page.tsx     # Homepage / Dashboard
-│   ├── components/      # UI Components (Header, Workspace, PdfViewer, OmrSheet, etc.)
-│   ├── utils/           # Helper libraries (scoring engine, local storage, DB sync)
-│   └── index.css        # Global CSS variables and typography system
-```
+## 📝 Practice Workspace Features
+If you use the online link to solve these papers, the web app provides a workspace simulating the exam environment:
+* **Interactive Canvas**: Use a stylus, mouse, or touch input to sketch notes, mark options, or draft answers directly on top of the question sheets.
+* **Scrollable PDF Viewer**: View entire papers smoothly with native scroll support.
+* **Side-by-Side OMR Sheet**: Select choices (MCQs, MSQs) or enter values (NATs) on a digital answer sheet.
+* **Automatic Grading**: Instant score calculation based on official marking schemes (including positive/negative scoring).
+* **Progress Recovery**: Your drawing strokes, answers, and timers are saved automatically to your browser storage (IndexedDB) so you never lose your progress.
 
 ---
 
-## 🚦 Getting Started
+## 🛠️ Local Setup & Technical Info
 
-### Prerequisites
-* **Node.js**: `v18.x` or later
-* **npm** or **yarn**
+If you want to run the workspace app locally on your computer:
 
-### Installation
-1. Clone the repository:
+1. Clone this repository:
    ```bash
    git clone https://github.com/rudy0Z/design-prep-papers.git
    cd design-prep-papers
@@ -70,18 +63,10 @@ Deploy and check out the live app hosted on Vercel: **[design-prep-papers.vercel
    ```bash
    npm install
    ```
-3. Run the development server:
+3. Start the local server:
    ```bash
    npm run dev
    ```
-4. Build for production:
-   ```bash
-   npm run build
-   ```
+   Open `http://localhost:3000` to start practicing.
 
----
-
-## 🧑‍🎨 Design Philosophy
-* **Hierarchy First**: Colors are used strictly for state, errors, scoring, and interaction—never for decoration.
-* **Dense but Readable**: High-density layouts designed to feel like a real-world test cockpit, providing a calm, focused reading environment.
-* **Zero Bloat**: No flashy AI landing page headers, gradients, shadows, or marketing banners. A professional tool for professional study.
+*Built with Next.js 16, TypeScript, Vanilla CSS, and PDF.js.*
