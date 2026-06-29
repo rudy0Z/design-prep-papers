@@ -16,6 +16,8 @@ interface PaperData {
   ansPath: string | null;
   sections: QuestionSection[];
   keys: AnswerKeyMap | null;
+  pageQuestions?: { [page: string]: number[] };
+  totalPages?: number;
 }
 
 export const Workspace: React.FC = () => {
@@ -42,6 +44,10 @@ export const Workspace: React.FC = () => {
   const [manualRunningQid, setManualRunningQid] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isLoadingManifest, setIsLoadingManifest] = useState<boolean>(true);
+  const [submitted, setSubmitted] = useState<boolean>(false);
+  const [omrMode, setOmrMode] = useState<'page' | 'full'>('page');
+  
+  const currentPaper = papers.find((p) => p.id === activePaperId);
 
   useEffect(() => {
     fetch('/data/papers.json')
@@ -74,14 +80,16 @@ export const Workspace: React.FC = () => {
       storage.getPageNumber(activePaperId),
       storage.getAnswers(activePaperId),
       storage.getVerifiedSections(activePaperId),
-      storage.getQuestionTimes(activePaperId)
-    ]).then(([savedPage, savedAnswers, savedVerified, savedTimes]) => {
+      storage.getQuestionTimes(activePaperId),
+      storage.getSubmitted(activePaperId)
+    ]).then(([savedPage, savedAnswers, savedVerified, savedTimes, savedSubmitted]) => {
       if (!isCurrent) return;
 
       setPageNumber(savedPage);
       setAnswers(savedAnswers);
       setVerifiedSections(savedVerified);
       setQuestionTimes(savedTimes);
+      setSubmitted(savedSubmitted);
 
       const savedMode = (localStorage.getItem(`timer_mode_${activePaperId}`) as 'stopwatch' | 'timer') || 'stopwatch';
       const savedRemaining = parseInt(localStorage.getItem(`timer_remaining_${activePaperId}`) || '10800');
@@ -226,6 +234,34 @@ export const Workspace: React.FC = () => {
     }
   };
 
+  // Auto-focus active question based on pageNumber and unanswered questions
+  useEffect(() => {
+    if (!currentPaper || trackingMode !== 'auto' || activeQuestionId) return;
+
+    const pageQs = (currentPaper as any).pageQuestions?.[String(pageNumber)];
+    if (!pageQs || pageQs.length === 0) return;
+
+    // Find the first question on the page that doesn't have an answer yet
+    const firstUnanswered = pageQs.find((qId: number) => {
+      const qidStr = String(qId);
+      return !answers[qidStr] || answers[qidStr] === '' || (Array.isArray(answers[qidStr]) && (answers[qidStr] as string[]).length === 0);
+    });
+
+    if (firstUnanswered) {
+      setActiveQuestionId(String(firstUnanswered));
+    } else {
+      // If all are answered, focus the first question on the page
+      setActiveQuestionId(String(pageQs[0]));
+    }
+  }, [pageNumber, answers, trackingMode, activeQuestionId, currentPaper]);
+
+  const handleSetSubmitted = (val: boolean) => {
+    setSubmitted(val);
+    if (activePaperId) {
+      storage.saveSubmitted(activePaperId, val);
+    }
+  };
+
   const handleUndo = useCallback(() => {
     if (strokes.length === 0) return;
     const lastStroke = strokes[strokes.length - 1];
@@ -283,6 +319,7 @@ export const Workspace: React.FC = () => {
       setStrokes([]);
       setRedoStrokes([]);
       setQuestionTimes({});
+      setSubmitted(false);
       setTimerElapsed(0);
       setTimerRemaining(timerDuration);
       setIsTimerRunning(false);
@@ -306,7 +343,6 @@ export const Workspace: React.FC = () => {
     if (mode !== 'manual') setManualRunningQid(null);
   };
 
-  const currentPaper = papers.find((p) => p.id === activePaperId);
   const { score, totalMarks, totalAnswered, totalQuestions } = currentPaper
     ? calculateScore(answers, currentPaper.sections, currentPaper.keys, currentPaper.exam as 'CEED' | 'UCEED')
     : { score: null, totalMarks: 0, totalAnswered: 0, totalQuestions: 0 };
@@ -365,9 +401,10 @@ export const Workspace: React.FC = () => {
         isOmrCollapsed={isOmrCollapsed}
         setIsOmrCollapsed={setIsOmrCollapsed}
         isSaving={isSaving}
+        submitted={submitted}
       />
 
-      <div className="workspace-grid">
+      <div className={`workspace-grid ${isOmrCollapsed ? 'omr-hidden' : omrMode === 'page' ? 'omr-mode-dock' : 'omr-mode-full'}`}>
         <section className={`pdf-pane ${isOmrCollapsed ? 'full' : ''}`}>
           {currentPaper ? (
             <PdfViewer
@@ -402,6 +439,13 @@ export const Workspace: React.FC = () => {
               setTrackingMode={handleTrackingModeChange}
               manualRunningQid={manualRunningQid}
               setManualRunningQid={setManualRunningQid}
+              submitted={submitted}
+              setSubmitted={handleSetSubmitted}
+              omrMode={omrMode}
+              setOmrMode={setOmrMode}
+              pageNumber={pageNumber}
+              pageQuestions={(currentPaper as any).pageQuestions}
+              onResetSession={handleResetSession}
             />
           ) : null}
         </aside>

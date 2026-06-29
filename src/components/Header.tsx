@@ -62,6 +62,7 @@ interface HeaderProps {
   isOmrCollapsed: boolean;
   setIsOmrCollapsed: (collapsed: boolean) => void;
   isSaving: boolean;
+  submitted: boolean;
 }
 
 const BRUSH_COLORS = [
@@ -107,7 +108,8 @@ export const Header: React.FC<HeaderProps> = ({
   setIsTimerRunning,
   isOmrCollapsed,
   setIsOmrCollapsed,
-  isSaving
+  isSaving,
+  submitted
 }) => {
   const [showTimerSettings, setShowTimerSettings] = useState(false);
   const [lastPencilColor, setLastPencilColor] = useState('#ff3366');
@@ -172,8 +174,8 @@ export const Header: React.FC<HeaderProps> = ({
         <button onClick={() => setDrawMode(!drawMode)} className={`studio-btn ${drawMode ? 'active' : ''}`} title="Toggle annotation mode">
           <Edit3 size={15} /> Draw
         </button>
-        <button onClick={() => setIsOmrCollapsed(!isOmrCollapsed)} className={`studio-btn ${isOmrCollapsed ? 'active' : ''}`} title="Toggle OMR panel">
-          <FileText size={15} /> {isOmrCollapsed ? 'Show OMR' : 'Hide OMR'}
+        <button onClick={() => setIsOmrCollapsed(!isOmrCollapsed)} className={`studio-btn ${isOmrCollapsed ? 'active' : ''}`} title="Toggle response sheet panel">
+          <FileText size={15} /> {isOmrCollapsed ? 'Show Sheet' : 'Hide Sheet'}
         </button>
 
         {drawMode && (
@@ -253,7 +255,12 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div className="score-strip">
           <FileText size={15} /> <span>Attempted <strong className="mono">{totalAnswered}/{totalQuestions}</strong></span>
-          <Award size={15} color="var(--accent)" /> <span>Score <strong className="mono">{score !== null ? score.toFixed(2) : '--'}</strong><span className="mono" style={{ color: 'var(--muted)' }}>/{totalMarks}</span></span>
+          {submitted && (
+            <>
+              <div className="v-divider" style={{ height: '12px', margin: '0 8px' }} />
+              <Award size={15} color="var(--accent)" /> <span>Score <strong className="mono">{score !== null ? score.toFixed(2) : '--'}</strong><span className="mono" style={{ color: 'var(--muted)' }}>/{totalMarks}</span></span>
+            </>
+          )}
         </div>
         <button onClick={onReset} className="icon-btn" title="Reset current session"><RefreshCw size={15} /></button>
       </div>
