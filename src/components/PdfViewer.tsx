@@ -248,7 +248,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
 
   // Scroll-to-Page sync: When user scrolls, detect which page is dominant and update pageNumber
   const handleScroll = () => {
-    if (isAutoScrollingRef.current) return;
+    if (isLoading || !pdfDoc || isAutoScrollingRef.current) return;
     const container = containerRef.current;
     if (!container) return;
 
