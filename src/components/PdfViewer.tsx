@@ -77,7 +77,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
       if (touches.length < 2) return 0;
       const dx = touches[0].clientX - touches[1].clientX;
       const dy = touches[0].clientY - touches[1].clientY;
-      return Math.sqrt(dx * Math.max(1, dx) + dy * Math.max(1, dy));
+      return Math.sqrt(dx * dx + dy * dy);
     };
 
     const handleTouchStart = (e: TouchEvent) => {
@@ -289,8 +289,12 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
     };
   }, []);
 
-  const pageWidth = Math.min(containerWidth, 1200) * zoomScale;
-  const pageHeight = pageWidth / pageAspectRatio;
+  const activeZoom = isNaN(zoomScale) || zoomScale <= 0 ? 1.0 : zoomScale;
+  const activeWidth = isNaN(containerWidth) || containerWidth <= 0 ? 800 : containerWidth;
+  const activeRatio = isNaN(pageAspectRatio) || pageAspectRatio <= 0 ? 1.414 : pageAspectRatio;
+
+  const pageWidth = Math.min(activeWidth, 1200) * activeZoom;
+  const pageHeight = pageWidth / activeRatio;
 
   return (
     <div className="relative w-full h-full overflow-hidden" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
