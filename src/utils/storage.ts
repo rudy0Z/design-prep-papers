@@ -103,6 +103,15 @@ export const storage = {
     await localforage.setItem('submitted_' + paperId, submitted);
   },
 
+  // Flagged Questions
+  async getFlaggedQuestions(paperId: string): Promise<string[]> {
+    const data = await localforage.getItem<string[]>('flagged_' + paperId);
+    return data || [];
+  },
+  async saveFlaggedQuestions(paperId: string, flagged: string[]): Promise<void> {
+    await localforage.setItem('flagged_' + paperId, flagged);
+  },
+
   // Reset Session
   async resetSession(paperId: string): Promise<void> {
     await localforage.removeItem(ANSWERS_KEY_PREFIX + paperId);
@@ -110,6 +119,7 @@ export const storage = {
     await localforage.removeItem(PAGE_KEY_PREFIX + paperId);
     await localforage.removeItem(QUESTION_TIMES_KEY_PREFIX + paperId);
     await localforage.removeItem('submitted_' + paperId);
+    await localforage.removeItem('flagged_' + paperId);
     
     // Clear all drawing keys for this paper
     const keys = await localforage.keys();

@@ -46,6 +46,7 @@ export const Workspace: React.FC = () => {
   const [isLoadingManifest, setIsLoadingManifest] = useState<boolean>(true);
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [omrMode, setOmrMode] = useState<'page' | 'full'>('page');
+  const [flaggedQuestions, setFlaggedQuestions] = useState<string[]>([]);
   
   const currentPaper = papers.find((p) => p.id === activePaperId);
 
@@ -81,8 +82,9 @@ export const Workspace: React.FC = () => {
       storage.getAnswers(activePaperId),
       storage.getVerifiedSections(activePaperId),
       storage.getQuestionTimes(activePaperId),
-      storage.getSubmitted(activePaperId)
-    ]).then(([savedPage, savedAnswers, savedVerified, savedTimes, savedSubmitted]) => {
+      storage.getSubmitted(activePaperId),
+      storage.getFlaggedQuestions(activePaperId)
+    ]).then(([savedPage, savedAnswers, savedVerified, savedTimes, savedSubmitted, savedFlagged]) => {
       if (!isCurrent) return;
 
       setPageNumber(savedPage);
@@ -90,6 +92,7 @@ export const Workspace: React.FC = () => {
       setVerifiedSections(savedVerified);
       setQuestionTimes(savedTimes);
       setSubmitted(savedSubmitted);
+      setFlaggedQuestions(savedFlagged);
 
       const savedMode = (localStorage.getItem(`timer_mode_${activePaperId}`) as 'stopwatch' | 'timer') || 'stopwatch';
       const savedRemaining = parseInt(localStorage.getItem(`timer_remaining_${activePaperId}`) || '10800');
@@ -255,6 +258,16 @@ export const Workspace: React.FC = () => {
     }
   }, [pageNumber, answers, trackingMode, activeQuestionId, currentPaper]);
 
+  const toggleFlagQuestion = (qid: string) => {
+    const updated = flaggedQuestions.includes(qid)
+      ? flaggedQuestions.filter(id => id !== qid)
+      : [...flaggedQuestions, qid];
+    setFlaggedQuestions(updated);
+    if (activePaperId) {
+      storage.saveFlaggedQuestions(activePaperId, updated);
+    }
+  };
+
   const handleSetSubmitted = (val: boolean) => {
     setSubmitted(val);
     if (activePaperId) {
@@ -290,17 +303,31 @@ export const Workspace: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeEl = document.activeElement;
       if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.getAttribute('contenteditable') === 'true')) return;
+      
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
         e.preventDefault();
         handleUndo();
       } else if ((e.ctrlKey || e.metaKey) && ((e.shiftKey && e.key.toLowerCase() === 'z') || e.key.toLowerCase() === 'y')) {
         e.preventDefault();
         handleRedo();
+      } else if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
+        const key = e.key.toLowerCase();
+        if (key === 'd' || key === 'p') {
+          setDrawMode(true);
+          if (brushColor === 'eraser') {
+            setBrushColor('#ff3366');
+          }
+        } else if (key === 'e') {
+          setDrawMode(true);
+          setBrushColor('eraser');
+        } else if (key === 'c') {
+          handleClear();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleRedo, handleUndo]);
+  }, [handleRedo, handleUndo, brushColor, setBrushColor, setDrawMode]);
 
   const handleClear = () => {
     if (window.confirm('Clear all drawings on this page?')) {
@@ -320,6 +347,7 @@ export const Workspace: React.FC = () => {
       setRedoStrokes([]);
       setQuestionTimes({});
       setSubmitted(false);
+      setFlaggedQuestions([]);
       setTimerElapsed(0);
       setTimerRemaining(timerDuration);
       setIsTimerRunning(false);
@@ -446,6 +474,8 @@ export const Workspace: React.FC = () => {
               pageNumber={pageNumber}
               pageQuestions={(currentPaper as any).pageQuestions}
               onResetSession={handleResetSession}
+              flaggedQuestions={flaggedQuestions}
+              onToggleFlag={toggleFlagQuestion}
             />
           ) : null}
         </aside>

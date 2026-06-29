@@ -39,10 +39,31 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   // Dimensions & aspect ratio
   const [containerWidth, setContainerWidth] = useState<number>(0);
   const [pageAspectRatio, setPageAspectRatio] = useState<number>(1.414); // default CEED/UCEED landscape aspect ratio
+  const [zoomScale, setZoomScale] = useState<number>(1.0);
 
   // Scroll sync refs
   const isAutoScrollingRef = useRef(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Listen to wheel events on container for pinch-to-zoom and ctrl+scroll zoom
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        const delta = -e.deltaY * 0.003;
+        setZoomScale((prev) => {
+          const next = prev + delta;
+          return Math.max(0.4, Math.min(next, 3.0));
+        });
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, []);
 
   // Measure container width for responsive scaling
   useEffect(() => {
@@ -218,58 +239,88 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
     };
   }, []);
 
-  const pageWidth = Math.min(containerWidth, 1200);
+  const pageWidth = Math.min(containerWidth, 1200) * zoomScale;
   const pageHeight = pageWidth / pageAspectRatio;
 
   return (
-    <div 
-      ref={containerRef} 
-      className="pdf-stage" 
-      onScroll={handleScroll}
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-    >
-      {isLoading && (
-        <div className="pdf-loading">
-          <div className="loading-card">
-            <div className="spinner" />
-            <h3>Loading question paper</h3>
-            <p>Preparing the PDF canvas and annotation layer.</p>
+    <div className="relative w-full h-full overflow-hidden" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div 
+        ref={containerRef} 
+        className="pdf-stage" 
+        onScroll={handleScroll}
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%', overflowY: 'auto' }}
+      >
+        {isLoading && (
+          <div className="pdf-loading">
+            <div className="loading-card">
+              <div className="spinner" />
+              <h3>Loading question paper</h3>
+              <p>Preparing the PDF canvas and annotation layer.</p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {pdfDoc && Array.from({ length: pdfDoc.numPages }, (_, i) => {
-        const pageNum = i + 1;
-        return (
-          <PdfPageItem
-            key={pageNum}
-            pageNum={pageNum}
-            pdfDoc={pdfDoc}
-            drawMode={drawMode}
-            brushColor={brushColor}
-            brushWidth={brushWidth}
-            isActive={pageNumber === pageNum}
-            onPageActive={() => {
-              if (pageNumber !== pageNum) {
-                setPageNumber(pageNum);
-              }
-            }}
-            activeStrokes={strokes}
-            setActiveStrokes={setStrokes}
-            paperId={activePaperId}
-            width={pageWidth}
-            height={pageHeight}
-          />
-        );
-      })}
+        {pdfDoc && Array.from({ length: pdfDoc.numPages }, (_, i) => {
+          const pageNum = i + 1;
+          return (
+            <PdfPageItem
+              key={pageNum}
+              pageNum={pageNum}
+              pdfDoc={pdfDoc}
+              drawMode={drawMode}
+              brushColor={brushColor}
+              brushWidth={brushWidth}
+              isActive={pageNumber === pageNum}
+              onPageActive={() => {
+                if (pageNumber !== pageNum) {
+                  setPageNumber(pageNum);
+                }
+              }}
+              activeStrokes={strokes}
+              setActiveStrokes={setStrokes}
+              paperId={activePaperId}
+              width={pageWidth}
+              height={pageHeight}
+            />
+          );
+        })}
 
-      {!pdfDoc && !isLoading && (
-        <div className="pdf-empty">
-          <div className="pdf-empty-card">
-            <div style={{ marginBottom: 12, color: 'var(--muted)' }}><FileWarning size={24} /></div>
-            <h3>Question paper unavailable</h3>
-            <p>{loadError || 'Select a paper with a valid PDF file to open the reading canvas.'}</p>
+        {!pdfDoc && !isLoading && (
+          <div className="pdf-empty">
+            <div className="pdf-empty-card">
+              <div style={{ marginBottom: 12, color: 'var(--muted)' }}><FileWarning size={24} /></div>
+              <h3>Question paper unavailable</h3>
+              <p>{loadError || 'Select a paper with a valid PDF file to open the reading canvas.'}</p>
+            </div>
           </div>
+        )}
+      </div>
+
+      {/* Floating Zoom Widget */}
+      {pdfDoc && (
+        <div className="zoom-widget animate-fade-in">
+          <button 
+            onClick={() => setZoomScale(prev => Math.max(0.4, prev - 0.1))}
+            title="Zoom Out"
+            className="zoom-btn"
+          >
+            -
+          </button>
+          <span className="zoom-text mono">{Math.round(zoomScale * 100)}%</span>
+          <button 
+            onClick={() => setZoomScale(prev => Math.min(3.0, prev + 0.1))}
+            title="Zoom In"
+            className="zoom-btn"
+          >
+            +
+          </button>
+          <button 
+            onClick={() => setZoomScale(1.0)}
+            title="Reset Zoom"
+            className="zoom-reset-btn"
+          >
+            Reset
+          </button>
         </div>
       )}
     </div>

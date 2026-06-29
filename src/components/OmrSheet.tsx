@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Play, Pause, X, Check, Award, AlertCircle, Clock, LayoutGrid, FileText, RotateCcw } from 'lucide-react';
+import { Eye, EyeOff, Play, Pause, X, Check, Award, AlertCircle, Clock, LayoutGrid, FileText, RotateCcw, Flag } from 'lucide-react';
 import { QuestionSection, evaluateNat, evaluateMcq, evaluateMsq, calculateScore } from '../utils/scoring';
 
 interface OmrSheetProps {
@@ -27,6 +27,8 @@ interface OmrSheetProps {
   pageNumber: number;
   pageQuestions?: { [page: string]: number[] };
   onResetSession: () => void;
+  flaggedQuestions: string[];
+  onToggleFlag: (qid: string) => void;
 }
 
 const fmtTime = (s: number) => {
@@ -51,7 +53,8 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
   submitted, setSubmitted,
   omrMode, setOmrMode,
   pageNumber, pageQuestions,
-  onResetSession
+  onResetSession,
+  flaggedQuestions, onToggleFlag
 }) => {
   const [activeTab, setActiveTab] = useState<string>(sections[0]?.id ?? '');
   const [revealKeys, setRevealKeys] = useState(false);
@@ -226,13 +229,24 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                       else correct = verifyMsq(qid, correctKey);
                     }
 
+                    const isFlagged = flaggedQuestions.includes(qid);
                     return (
                       <div
                         key={qid}
-                        className={`question-row ${isActive ? 'active' : ''} ${submitted ? 'locked' : ''}`}
+                        className={`question-row ${isActive ? 'active' : ''} ${submitted ? 'locked' : ''} ${isFlagged ? 'flagged' : ''}`}
                         onClick={() => { if (trackingMode === 'auto') setActiveQuestionId(qid); }}
                       >
-                        <div className="q-label mono">Q.{qid}</div>
+                        <div className="q-label mono flex items-center gap-1">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onToggleFlag(qid); }}
+                            className={`flag-action-btn ${isFlagged ? 'flagged' : ''}`}
+                            title={isFlagged ? 'Flagged for review' : 'Flag for review'}
+                            style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', color: isFlagged ? 'var(--warning, #ffaa00)' : 'var(--muted)' }}
+                          >
+                            <Flag size={11} fill={isFlagged ? 'var(--warning, #ffaa00)' : 'transparent'} />
+                          </button>
+                          <span>Q.{qid}</span>
+                        </div>
                         
                         <div className="q-controls">
                           {activeSection.type === 'NAT' ? (
@@ -341,14 +355,26 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                   else correct = verifyMsq(qid, correctKey);
                 }
 
+                const isFlagged = flaggedQuestions.includes(qid);
                 return (
                   <div 
                     key={qid}
-                    className={`dock-question-card ${isActive ? 'active' : ''} ${submitted ? 'locked' : ''}`}
+                    className={`dock-question-card ${isActive ? 'active' : ''} ${submitted ? 'locked' : ''} ${isFlagged ? 'flagged' : ''}`}
                     onClick={() => { if (trackingMode === 'auto') setActiveQuestionId(qid); }}
                   >
                     <div className="dock-card-header">
-                      <span className="mono font-semibold text-xs">Q.{qid} <span className="text-[10px] font-normal text-muted-2">({sec.type})</span></span>
+                      <span className="mono font-semibold text-xs flex items-center gap-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onToggleFlag(qid); }}
+                          className={`flag-action-btn ${isFlagged ? 'flagged' : ''}`}
+                          title={isFlagged ? 'Flagged for review' : 'Flag for review'}
+                          style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '0', display: 'inline-flex', alignItems: 'center', color: isFlagged ? 'var(--warning, #ffaa00)' : 'var(--muted-2)' }}
+                        >
+                          <Flag size={10} fill={isFlagged ? 'var(--warning, #ffaa00)' : 'transparent'} />
+                        </button>
+                        <span>Q.{qid}</span>
+                        <span className="text-[10px] font-normal text-muted-2">({sec.type})</span>
+                      </span>
                       
                       {trackingMode !== 'off' && (
                         <span className={`dock-q-time mono ${isActive || isManualRunning ? 'live' : ''}`}>
@@ -597,9 +623,13 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                           ? `⚡ -${fmtTime(timeDiff)} ahead` 
                           : `🐢 +${fmtTime(Math.abs(timeDiff))} over`;
 
+                        const isFlagged = flaggedQuestions.includes(qid);
                         return (
-                          <tr key={qid} className={correct === true ? 'row-correct' : correct === false ? 'row-wrong' : 'row-unanswered'}>
-                            <td className="mono font-semibold">Q.{qid}</td>
+                          <tr key={qid} className={`${correct === true ? 'row-correct' : correct === false ? 'row-wrong' : 'row-unanswered'} ${isFlagged ? 'row-flagged' : ''}`}>
+                            <td className="mono font-semibold flex items-center gap-1">
+                              {isFlagged && <Flag size={9} fill="var(--warning, #ffaa00)" color="var(--warning, #ffaa00)" />}
+                              <span>Q.{qid}</span>
+                            </td>
                             <td>{sec.type}</td>
                             <td className="mono text-xs">{ansStr}</td>
                             <td className="mono text-xs">{keyStr}</td>
