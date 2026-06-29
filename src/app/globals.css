@@ -603,6 +603,7 @@ button:active { opacity: 0.8; }
   border-radius: 2px;
   box-shadow: 0 2px 24px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.06);
   overflow: hidden;
+  flex-shrink: 0;
 }
 .pdf-empty, .pdf-loading {
   min-height: 100%;

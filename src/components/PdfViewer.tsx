@@ -435,6 +435,7 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
       const viewport = page.getViewport({ scale: 1.0 });
       if (isCurrent && viewport.width && viewport.height) {
         const ratio = viewport.width / viewport.height;
+        console.log(`[PDF DEBUG] Page ${pageNum} viewport load | width: ${viewport.width} | height: ${viewport.height} | ratio: ${ratio}`);
         if (!isNaN(ratio) && isFinite(ratio) && ratio > 0) {
           setAspectRatio(ratio);
         }
@@ -447,6 +448,8 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
 
   const activeRatio = isNaN(aspectRatio) || aspectRatio <= 0 ? 1.414 : aspectRatio;
   const height = width / activeRatio;
+
+  console.log(`[PDF DEBUG] Page ${pageNum} render | width: ${width} | height: ${height} | ratio: ${activeRatio}`);
 
   // Debounced dimensions to prevent rapidly re-rendering canvas on drag zoom
   const [debouncedWidth, setDebouncedWidth] = useState(width);
@@ -553,7 +556,8 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
         width: `${width}px`, 
         height: `${height}px`, 
         marginBottom: '24px',
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        flexShrink: 0
       }}
       onPointerDown={() => {
         if (!isActive) {
