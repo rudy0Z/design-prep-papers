@@ -40,6 +40,10 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   const [containerWidth, setContainerWidth] = useState<number>(0);
   const [zoomScale, setZoomScale] = useState<number>(1.0);
 
+  // Pre-loaded page aspect ratios: pageNum -> ratio (width/height)
+  const [pageAspectRatios, setPageAspectRatios] = useState<Record<number, number>>({});
+  const [ratiosReady, setRatiosReady] = useState(false);
+
   // Scroll sync refs
   const isAutoScrollingRef = useRef(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -219,31 +223,56 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
 
   // Fetched PDFs will resolve dimensions per page inside child components.
 
-  // Page-to-Scroll sync: When header changes the pageNumber, scroll the container to that page
+  // Pre-load ALL page aspect ratios as soon as PDF is ready — needed for accurate scroll-to-page
   useEffect(() => {
-    if (!pdfDoc) return;
+    if (!pdfDoc) {
+      setPageAspectRatios({});
+      setRatiosReady(false);
+      return;
+    }
+    const pageCount = pdfDoc.numPages;
+    const promises = Array.from({ length: pageCount }, (_, i) =>
+      pdfDoc.getPage(i + 1).then((page) => {
+        const vp = page.getViewport({ scale: 1.0 });
+        const ratio = vp.width && vp.height ? vp.width / vp.height : 1.414;
+        return [i + 1, isNaN(ratio) || ratio <= 0 ? 1.414 : ratio] as [number, number];
+      })
+    );
+    Promise.all(promises).then((entries) => {
+      const map: Record<number, number> = {};
+      entries.forEach(([pg, r]) => { map[pg] = r; });
+      setPageAspectRatios(map);
+      setRatiosReady(true);
+    });
+  }, [pdfDoc]);
+
+  // Page-to-Scroll sync: When pageNumber changes (header arrows / session restore), scroll to that page
+  // We use exact cumulative scrollTop calculated from pre-loaded page heights (not scrollIntoView)
+  // so it works even before pages are painted in viewport.
+  useEffect(() => {
+    if (!pdfDoc || !ratiosReady || pageNumber <= 1) return;
     const container = containerRef.current;
     if (!container) return;
 
-    const targetElement = container.querySelector(`[data-page-number="${pageNumber}"]`);
-    if (targetElement) {
-      const rect = targetElement.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-      // Check if the top of the target page is aligned near the top of the container.
-      // We only check the top border, because pages might be taller than the container height itself.
-      const isInView = Math.abs(rect.top - containerRect.top) < 30;
-
-      if (!isInView) {
-        isAutoScrollingRef.current = true;
-        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-        if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-        scrollTimeoutRef.current = setTimeout(() => {
-          isAutoScrollingRef.current = false;
-        }, 800);
+    // Small delay to let the DOM finish mounting page nodes after ratios load
+    const t = setTimeout(() => {
+      let cumulative = 24; // initial padding-top of 24px
+      const GAP = 24; // marginBottom on each page wrapper
+      for (let pg = 1; pg < pageNumber; pg++) {
+        const ratio = pageAspectRatios[pg] ?? 1.414;
+        const pageHeight = pageWidth / ratio;
+        cumulative += pageHeight + GAP;
       }
-    }
-  }, [pageNumber, pdfDoc]);
+      isAutoScrollingRef.current = true;
+      container.scrollTop = cumulative;
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => {
+        isAutoScrollingRef.current = false;
+      }, 600);
+    }, 80);
+
+    return () => clearTimeout(t);
+  }, [pageNumber, pdfDoc, ratiosReady]);
 
   // Scroll-to-Page sync: When user scrolls, detect which page is dominant and update pageNumber
   const handleScroll = () => {
@@ -309,6 +338,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
 
         {pdfDoc && Array.from({ length: pdfDoc.numPages }, (_, i) => {
           const pageNum = i + 1;
+          const ratio = pageAspectRatios[pageNum] ?? 1.414;
           return (
             <PdfPageItem
               key={pageNum}
@@ -327,6 +357,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
               setActiveStrokes={setStrokes}
               paperId={activePaperId}
               width={pageWidth}
+              parentAspectRatio={ratio}
             />
           );
         })}
@@ -412,6 +443,7 @@ interface PdfPageItemProps {
   setActiveStrokes: (strokes: Stroke[]) => void;
   paperId: string;
   width: number;
+  parentAspectRatio: number;
 }
 
 const PdfPageItem: React.FC<PdfPageItemProps> = ({
@@ -425,7 +457,8 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
   activeStrokes,
   setActiveStrokes,
   paperId,
-  width
+  width,
+  parentAspectRatio
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -447,30 +480,9 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
     }
   }, [isVisible]);
 
-  // Aspect ratio state computed per page loaded from PDF document
-  const [aspectRatio, setAspectRatio] = useState<number>(1.414);
-
-  useEffect(() => {
-    let isCurrent = true;
-    pdfDoc.getPage(pageNum).then((page) => {
-      const viewport = page.getViewport({ scale: 1.0 });
-      if (isCurrent && viewport.width && viewport.height) {
-        const ratio = viewport.width / viewport.height;
-        console.log(`[PDF DEBUG] Page ${pageNum} viewport load | width: ${viewport.width} | height: ${viewport.height} | ratio: ${ratio}`);
-        if (!isNaN(ratio) && isFinite(ratio) && ratio > 0) {
-          setAspectRatio(ratio);
-        }
-      }
-    }).catch((err) => {
-      console.error(`Error loading aspect ratio for page ${pageNum}:`, err);
-    });
-    return () => { isCurrent = false; };
-  }, [pdfDoc, pageNum]);
-
-  const activeRatio = isNaN(aspectRatio) || aspectRatio <= 0 ? 1.414 : aspectRatio;
+  // Use the pre-loaded ratio from the parent. No need to fetch again per child.
+  const activeRatio = isNaN(parentAspectRatio) || parentAspectRatio <= 0 ? 1.414 : parentAspectRatio;
   const height = width / activeRatio;
-
-  console.log(`[PDF DEBUG] Page ${pageNum} render | width: ${width} | height: ${height} | ratio: ${activeRatio}`);
 
   // Debounced dimensions to prevent rapidly re-rendering canvas on drag zoom
   const [debouncedWidth, setDebouncedWidth] = useState(width);
