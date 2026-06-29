@@ -229,10 +229,9 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
     if (targetElement) {
       const rect = targetElement.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
-      const isInView = (
-        rect.top >= containerRect.top - 50 &&
-        rect.bottom <= containerRect.bottom + 50
-      );
+      // Check if the top of the target page is aligned near the top of the container.
+      // We only check the top border, because pages might be taller than the container height itself.
+      const isInView = Math.abs(rect.top - containerRect.top) < 30;
 
       if (!isInView) {
         isAutoScrollingRef.current = true;
