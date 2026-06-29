@@ -22,7 +22,12 @@ interface PaperData {
 
 export const Workspace: React.FC = () => {
   const [papers, setPapers] = useState<PaperData[]>([]);
-  const [activePaperId, setActivePaperId] = useState<string>('');
+  const [activePaperId, setActivePaperId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('active_paper_id') || '';
+    }
+    return '';
+  });
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [numPages, setNumPages] = useState<number>(1);
   const [drawMode, setDrawMode] = useState<boolean>(false);
@@ -62,7 +67,15 @@ export const Workspace: React.FC = () => {
           return b.year - a.year;
         });
         setPapers(sorted);
-        setActivePaperId('');
+        
+        // Read persisted active paper from localStorage
+        const savedPaperId = localStorage.getItem('active_paper_id');
+        if (savedPaperId && sorted.some((p) => p.id === savedPaperId)) {
+          setActivePaperId(savedPaperId);
+        } else {
+          setActivePaperId('');
+          localStorage.removeItem('active_paper_id');
+        }
         setIsLoadingManifest(false);
       })
       .catch((err) => {
@@ -203,6 +216,11 @@ export const Workspace: React.FC = () => {
     setNumPages(1);
     setPageNumber(1);
     setStrokes([]);
+    if (id) {
+      localStorage.setItem('active_paper_id', id);
+    } else {
+      localStorage.removeItem('active_paper_id');
+    }
   };
 
   const handlePageChange = (page: number) => {
