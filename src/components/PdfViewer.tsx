@@ -443,6 +443,19 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
   const [localStrokes, setLocalStrokes] = useState<Stroke[]>([]);
   const [isRendered, setIsRendered] = useState(false);
 
+  // Debounced dimensions to prevent rapidly re-rendering canvas on drag zoom
+  const [debouncedWidth, setDebouncedWidth] = useState(width);
+  const [debouncedHeight, setDebouncedHeight] = useState(height);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedWidth(width);
+      setDebouncedHeight(height);
+    }, 180);
+
+    return () => clearTimeout(handler);
+  }, [width, height]);
+
   // Lazy-load pages using IntersectionObserver
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -489,15 +502,15 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
       if (!ctx) return;
 
       const viewport = page.getViewport({ scale: 1.0 });
-      const scale = width / viewport.width;
+      const scale = debouncedWidth / viewport.width;
       const scaledViewport = page.getViewport({ scale });
 
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = debouncedWidth;
+      canvas.height = debouncedHeight;
 
       // Paint solid white background to prevent transparent PDF content showing dark backgrounds
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, width, height);
+      ctx.fillRect(0, 0, debouncedWidth, debouncedHeight);
 
       renderTask = page.render({ canvasContext: ctx, canvas, viewport: scaledViewport });
       renderTask.promise.then(() => {
@@ -515,7 +528,7 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
         try { renderTask.cancel(); } catch (_) {}
       }
     };
-  }, [isVisible, pdfDoc, pageNum, width, height]);
+  }, [isVisible, pdfDoc, pageNum, debouncedWidth, debouncedHeight]);
 
   const currentStrokes = isActive ? activeStrokes : localStrokes;
   const currentSetStrokes = isActive ? setActiveStrokes : (newStrokes: Stroke[]) => {
