@@ -225,8 +225,9 @@ export const Workspace: React.FC = () => {
   };
 
   const handlePageChange = (page: number) => {
-    setPageNumber(page);
-    if (activePaperId) storage.savePageNumber(activePaperId, page);
+    const clamped = Math.max(1, Math.min(page, numPages));
+    setPageNumber(clamped);
+    if (activePaperId) storage.savePageNumber(activePaperId, clamped);
   };
 
   const handleAnswerChange = (qid: string, val: string | string[]) => {

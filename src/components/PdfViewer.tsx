@@ -256,12 +256,14 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
     const container = containerRef.current;
     if (!container) return;
 
+    // Clamp pageNumber to valid range
+    const validPage = Math.max(1, Math.min(pageNumber, pdfDoc.numPages));
+
     // Delay to let DOM finish mounting/updating page heights
     const t = setTimeout(() => {
-      const targetElement = container.querySelector(`[data-page-number="${pageNumber}"]`) as HTMLElement | null;
+      const targetElement = container.querySelector(`[data-page-number="${validPage}"]`) as HTMLElement | null;
       if (!targetElement) return;
 
-      // Compute scrollTop as: element's offsetTop relative to the scroll container
       const targetTop = targetElement.offsetTop;
       const currentTop = container.scrollTop;
 
@@ -329,7 +331,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
         ref={containerRef} 
         className="pdf-stage" 
         onScroll={handleScroll}
-        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%', overflowY: 'auto' }}
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', width: '100%', height: '100%', overflowY: 'auto' }}
       >
         {isLoading && (
           <div className="pdf-loading">
