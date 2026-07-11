@@ -958,7 +958,7 @@ button:active { opacity: 0.8; }
   padding: 4px 6px;
   border-radius: calc(var(--radius-sm) - 1px);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
 }
 .view-toggle-segmented button.active {
   background: var(--surface);
@@ -999,7 +999,7 @@ button:active { opacity: 0.8; }
   border-radius: var(--radius-md);
   background: var(--bg);
   padding: 10px;
-  transition: all .15s ease;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 .dock-question-card.active {
   border-color: var(--accent);
@@ -1075,7 +1075,7 @@ button:active { opacity: 0.8; }
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: all .15s ease;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, filter 150ms ease;
 }
 .submit-practice-btn:hover {
   filter: brightness(1.08);
@@ -1099,7 +1099,7 @@ button:active { opacity: 0.8; }
   align-items: center;
   justify-content: center;
   gap: 4px;
-  transition: all .15s ease;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 .sheet-reset-btn:hover {
   background: var(--surface-hover);
@@ -1141,7 +1141,7 @@ button:active { opacity: 0.8; }
   cursor: pointer;
   padding: 6px;
   border-radius: 99px;
-  transition: all 0.15s ease;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 .close-modal-btn:hover {
   background: var(--surface-hover);
@@ -1317,7 +1317,7 @@ button:active { opacity: 0.8; }
   font-weight: 600;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: filter 150ms ease;
 }
 .close-report-btn:hover {
   filter: brightness(1.08);
@@ -1349,7 +1349,7 @@ button:active { opacity: 0.8; }
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 14px;
-  transition: all .15s ease;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 .zoom-widget button:hover {
   background: var(--surface-hover);
