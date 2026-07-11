@@ -47,6 +47,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   // Scroll sync refs
   const isAutoScrollingRef = useRef(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pageChangeSourceRef = useRef<'ui' | 'scroll'>('ui');
 
   // Listen to wheel events on container for pinch-to-zoom and ctrl+scroll zoom
   useEffect(() => {
@@ -253,6 +254,11 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   useEffect(() => {
     if (!pdfDoc || !ratiosReady) return;
 
+    if (pageChangeSourceRef.current === 'scroll') {
+      pageChangeSourceRef.current = 'ui';
+      return;
+    }
+
     const container = containerRef.current;
     if (!container) return;
 
@@ -309,6 +315,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
     });
 
     if (closestPageNum !== pageNumber) {
+      pageChangeSourceRef.current = 'scroll';
       setPageNumber(closestPageNum);
     }
   };
@@ -505,6 +512,10 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
 
   // Lazy-load pages using IntersectionObserver
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const scrollContainer = container.closest('.pdf-stage');
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -512,16 +523,13 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
         });
       },
       {
-        root: null,
+        root: scrollContainer || null,
         rootMargin: '600px', // start loading 600px before coming in viewport
         threshold: 0.01
       }
     );
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
+    observer.observe(container);
     return () => observer.disconnect();
   }, []);
 
