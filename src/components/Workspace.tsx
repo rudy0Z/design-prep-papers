@@ -152,6 +152,13 @@ export const Workspace: React.FC = () => {
     };
   }, [pageNumber, activePaperId]);
 
+  // Auto-stop countdown when it hits 0
+  useEffect(() => {
+    if (timerMode === 'timer' && timerRemaining <= 0 && isTimerRunning) {
+      setIsTimerRunning(false);
+    }
+  }, [timerRemaining, timerMode, isTimerRunning]);
+
   useEffect(() => {
     if (!activePaperId) return;
 
@@ -159,13 +166,7 @@ export const Workspace: React.FC = () => {
       if (!isTimerRunning) return;
 
       if (timerMode === 'timer') {
-        setTimerRemaining((prev) => {
-          if (prev <= 1) {
-            setIsTimerRunning(false);
-            return 0;
-          }
-          return prev - 1;
-        });
+        setTimerRemaining((prev) => Math.max(0, prev - 1));
       } else {
         setTimerElapsed((prev) => prev + 1);
       }

@@ -8,22 +8,22 @@
   --surface-solid:   #121315;
   --surface-muted:   rgba(22, 23, 26, 0.6);
   --surface-muted-solid: #17181a;
-  --surface-hover:   rgba(30, 31, 35, 0.75);
-  --surface-hover-solid: #1c1d21;
-  --text:            #f7f7f8;
-  --text-secondary:  #c1c2c7;
-  --muted:           #828387;
-  --muted-2:         #4b4c50;
+  --surface-hover:   rgba(28, 32, 33, 0.75);
+  --surface-hover-solid: #1a1e1f;
+  --text:            #f0f2f2;
+  --text-secondary:  #b8bdbe;
+  --muted:           #6e7678;
+  --muted-2:         #454a4b;
   --border:          rgba(255, 255, 255, 0.06);
-  --border-solid:    #1d1e21;
-  --border-strong:   rgba(255, 255, 255, 0.12);
-  --border-strong-solid: #2e2f34;
-  --accent:          #5e6ad2;
-  --accent-dim:      rgba(94, 106, 210, 0.15);
-  --danger:          #f25c5c;
-  --danger-dim:      rgba(242, 92, 92, 0.12);
-  --warning:         #f59e0b;
-  --ok:              #09d275;
+  --border-solid:    #1c1f20;
+  --border-strong:   rgba(255, 255, 255, 0.11);
+  --border-strong-solid: #2a2f30;
+  --accent:          #2a9d8f;
+  --accent-dim:      rgba(42, 157, 143, 0.14);
+  --danger:          #e05252;
+  --danger-dim:      rgba(224, 82, 82, 0.12);
+  --warning:         #e8a838;
+  --ok:              #27b98a;
 
   --font-sans:       'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono:       'Geist Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
@@ -828,7 +828,7 @@ button:active { opacity: 0.8; }
   background: rgba(255, 255, 255, 0.02); 
 }
 .question-row.active { 
-  background: rgba(94, 106, 210, 0.06); 
+  background: rgba(42, 157, 143, 0.06); 
   border-left-color: var(--accent);
 }
 .question-row.active .q-label { 
@@ -864,7 +864,7 @@ button:active { opacity: 0.8; }
   background: var(--accent);
   border-color: var(--accent);
   color: #ffffff !important;
-  box-shadow: 0 0 10px rgba(94, 106, 210, 0.3);
+  box-shadow: 0 0 10px rgba(42, 157, 143, 0.3);
 }
 .choice-btn.correct { 
   border-color: var(--ok); 
@@ -1626,6 +1626,109 @@ button:active { opacity: 0.8; }
   font-weight: 600;
 }
 
+/* ─── Tracking Status Badges ──────────────────────────────────────── */
+.tracking-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+.tracking-now-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--accent-dim);
+  white-space: nowrap;
+  animation: fadeIn 0.2s ease;
+}
+.tracking-pulse-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--accent);
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.4); }
+}
+.tracking-idle-label {
+  font-size: 9px;
+  color: var(--muted-2);
+  font-weight: 400;
+  white-space: nowrap;
+}
+.q-time-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.live-badge {
+  font-size: 7px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  animation: pulse-badge 1.4s ease-in-out infinite;
+}
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.live-badge-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--accent);
+  margin-right: 3px;
+  vertical-align: middle;
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+
+/* ─── Report Card Improvements ────────────────────────────────────── */
+.report-modal-card {
+  width: min(880px, 100%);
+}
+.report-score-banner {
+  gap: 0;
+}
+.report-score-banner .v-divider {
+  height: 40px;
+  margin: 0 8px;
+}
+.report-score-banner .stat-box .value {
+  font-size: 22px;
+}
+.report-section-breakdown .section-grid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.sec-breakdown-card {
+  padding: 14px;
+}
+.sec-breakdown-card h4 {
+  font-size: 12px;
+}
+.timeline-table {
+  font-size: 11px;
+}
+.timeline-table th {
+  padding: 10px 12px;
+  font-size: 10px;
+}
+.timeline-table td {
+  padding: 8px 12px;
+}
+
 /* ─── Floating Draw Palette Capsule ───────────────────────────────── */
 .floating-draw-palette {
   position: absolute;
@@ -1952,11 +2055,11 @@ button:active { opacity: 0.8; }
 }
 
 .linear-table-row.in-progress {
-  background: rgba(94, 106, 210, 0.015);
+  background: rgba(42, 157, 143, 0.015);
 }
 
 .linear-table-row.in-progress:hover {
-  background: rgba(94, 106, 210, 0.04);
+  background: rgba(42, 157, 143, 0.04);
 }
 
 /* Cell Alignments */
@@ -2001,8 +2104,8 @@ button:active { opacity: 0.8; }
 
 .linear-table-row:hover .cell-action {
   color: var(--accent);
-  background: rgba(94, 106, 210, 0.1);
-  border-color: rgba(94, 106, 210, 0.3);
+  background: rgba(42, 157, 143, 0.1);
+  border-color: rgba(42, 157, 143, 0.3);
 }
 
 /* Progress Layout */

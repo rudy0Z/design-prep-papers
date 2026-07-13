@@ -224,7 +224,27 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
 
       <div className="sheet-settings-bar">
         <div className="tracking-control-unified" id="omr-tracking-control">
-          <span>Auto-Track Time</span>
+          <div className="tracking-label-row">
+            <span>Auto-Track Time</span>
+            {trackingMode === 'auto' && activeQuestionId && (
+              <span className="tracking-now-badge mono">
+                <span className="tracking-pulse-dot" />
+                Tracking Q.{activeQuestionId}
+              </span>
+            )}
+            {trackingMode === 'manual' && manualRunningQid && (
+              <span className="tracking-now-badge mono">
+                <span className="tracking-pulse-dot" />
+                Timing Q.{manualRunningQid}
+              </span>
+            )}
+            {trackingMode === 'auto' && !activeQuestionId && (
+              <span className="tracking-idle-label mono">Click a question to track</span>
+            )}
+            {trackingMode === 'manual' && !manualRunningQid && (
+              <span className="tracking-idle-label mono">Tap play on any question</span>
+            )}
+          </div>
           <div className="tracking-buttons-group">
             {(['auto', 'manual', 'off'] as const).map(m => (
               <button
@@ -374,9 +394,14 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
 
                         {trackingMode !== 'off' && (
                           <div className="q-time-col">
-                            <span className={`q-time mono ${isActive || isManualRunning ? 'live' : ''}`}>
-                              {fmtTime(timeVal)}
-                            </span>
+                            <div className="q-time-row">
+                              {(isActive || isManualRunning) && (
+                                <span className="live-badge mono">LIVE</span>
+                              )}
+                              <span className={`q-time mono ${isActive || isManualRunning ? 'live' : ''}`}>
+                                {fmtTime(timeVal)}
+                              </span>
+                            </div>
                             {trackingMode === 'manual' && !submitted && (
                               <button
                                 className="manual-timer-btn"
@@ -456,6 +481,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                       
                       {trackingMode !== 'off' && (
                         <span className={`dock-q-time mono ${isActive || isManualRunning ? 'live' : ''}`}>
+                          {(isActive || isManualRunning) && <span className="live-badge-dot" />}
                           {fmtTime(timeVal)}
                         </span>
                       )}
@@ -568,9 +594,8 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
             </button>
 
             <div className="report-header">
-              <div className="report-badge">CEED/UCEED PRACTICE SUMMARY</div>
+              <div className="report-badge">PRACTICE REPORT</div>
               <h2>Performance Analytics</h2>
-              <p>Practice session evaluation details and timeline efficiency.</p>
             </div>
 
             {/* Score Stats Grid */}
@@ -620,42 +645,46 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                 {sections.map(sec => {
                   const attempted = getAttempted(sec);
                   // Calculate points obtained in this section
-                  let secScore = 0;
-                  const secKeys = keys ? keys[sec.type] || {} : {};
-                  let secCorrect = 0;
-                  
-                  if (keys) {
-                    for(let i=0; i<sec.count; i++) {
-                      const qid = String(sec.startQ + i);
-                      const key = secKeys[qid];
-                      if (!key || !answers[qid]) continue;
-                      
-                      if (sec.type === 'NAT') {
-                        if (verifyNat(qid, key as string) === true) secScore += 4;
-                      } else if (sec.type === 'MCQ') {
-                        const res = evaluateMcq(answers[qid] as string, key as string, examType);
-                        secScore += res.marks;
-                        if (res.isCorrect) secCorrect++;
-                      } else if (sec.type === 'MSQ') {
-                        const res = evaluateMsq(answers[qid] as string[], key as string[]);
-                        secScore += res.marks;
-                        if (res.isCorrect) secCorrect++;
+                    let secScore = 0;
+                    const secKeys = keys ? keys[sec.type] || {} : {};
+                    let secCorrect = 0;
+                    let secTotal = 0;
+                    
+                    if (keys) {
+                      for(let i=0; i<sec.count; i++) {
+                        const qid = String(sec.startQ + i);
+                        const key = secKeys[qid];
+                        if (!key || !answers[qid]) continue;
+                        
+                        if (sec.type === 'NAT') {
+                          if (verifyNat(qid, key as string) === true) secScore += 4;
+                          secTotal += 4;
+                        } else if (sec.type === 'MCQ') {
+                          const res = evaluateMcq(answers[qid] as string, key as string, examType);
+                          secScore += res.marks;
+                          secTotal += 4;
+                          if (res.isCorrect) secCorrect++;
+                        } else if (sec.type === 'MSQ') {
+                          const res = evaluateMsq(answers[qid] as string[], key as string[]);
+                          secScore += res.marks;
+                          secTotal += 4;
+                          if (res.isCorrect) secCorrect++;
+                        }
                       }
                     }
-                  }
-                  
-                  return (
-                    <div key={sec.id} className="sec-breakdown-card">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4>{sec.type} Section</h4>
-                        <span className="mono text-xs font-semibold">{secScore.toFixed(1)} pts</span>
+                    
+                    return (
+                      <div key={sec.id} className="sec-breakdown-card">
+                        <div className="flex justify-between items-center mb-2">
+                          <h4>{sec.type} Section</h4>
+                          <span className="mono text-xs font-semibold">{secScore.toFixed(1)}<span className="text-muted-2 font-normal">/{secTotal || sec.count * 4}</span></span>
+                        </div>
+                        <div className="flex justify-between text-[11px] text-muted-2">
+                          <span>Attempted: {attempted}/{sec.count}</span>
+                          {keys && <span>Correct: {secCorrect}</span>}
+                        </div>
                       </div>
-                      <div className="flex justify-between text-[11px] text-muted-2">
-                        <span>Attempted: {attempted}/{sec.count}</span>
-                        {keys && <span>Correct: {secCorrect}</span>}
-                      </div>
-                    </div>
-                  );
+                    );
                 })}
               </div>
             </div>
@@ -704,14 +733,14 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                         const timeDiff = recTime - timeVal;
                         const efficiencyClass = timeDiff >= 0 ? 'eff-good' : 'eff-bad';
                         const efficiencyLabel = timeDiff >= 0 
-                          ? `⚡ -${fmtTime(timeDiff)} ahead` 
-                          : `🐢 +${fmtTime(Math.abs(timeDiff))} over`;
+                          ? `-${fmtTime(timeDiff)} ahead` 
+                          : `+${fmtTime(Math.abs(timeDiff))} over`;
 
                         const isFlagged = flaggedQuestions.includes(qid);
                         return (
                           <tr key={qid} className={`${correct === true ? 'row-correct' : correct === false ? 'row-wrong' : 'row-unanswered'} ${isFlagged ? 'row-flagged' : ''}`}>
-                            <td className="mono font-semibold flex items-center gap-1">
-                              {isFlagged && <Flag size={9} fill="var(--warning, #ffaa00)" color="var(--warning, #ffaa00)" />}
+                            <td className="mono font-semibold">
+                              {isFlagged && <Flag size={9} fill="var(--warning, #ffaa00)" color="var(--warning, #ffaa00)" style={{ marginRight: 4, verticalAlign: 'middle' }} />}
                               <span>Q.{qid}</span>
                             </td>
                             <td>{sec.type}</td>
@@ -731,7 +760,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
 
             <div className="report-modal-footer">
               <button onClick={() => setShowReport(false)} className="close-report-btn">
-                Close & Review Responses
+                Close Report
               </button>
             </div>
           </div>
