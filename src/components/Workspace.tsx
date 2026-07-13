@@ -82,6 +82,7 @@ export const Workspace: React.FC = () => {
   const [omrMode, setOmrMode] = useState<'page' | 'full'>('page');
   const [flaggedQuestions, setFlaggedQuestions] = useState<string[]>([]);
   const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+  const [dashboardKey, setDashboardKey] = useState(0);
   
   const currentPaper = papers.find((p) => p.id === activePaperId);
 
@@ -252,6 +253,7 @@ export const Workspace: React.FC = () => {
       localStorage.setItem('active_paper_id', id);
     } else {
       localStorage.removeItem('active_paper_id');
+      setDashboardKey(k => k + 1);
     }
   };
 
@@ -548,7 +550,7 @@ export const Workspace: React.FC = () => {
   }
 
   if (!activePaperId) {
-    return <Dashboard papers={papers} onSelectPaper={handleActivePaperChange} />;
+    return <Dashboard key={dashboardKey} papers={papers} onSelectPaper={handleActivePaperChange} />;
   }
 
   return (
