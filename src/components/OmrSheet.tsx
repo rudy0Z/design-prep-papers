@@ -61,6 +61,8 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
   const [activeTab, setActiveTab] = useState<string>(sections[0]?.id ?? '');
   const [showReport, setShowReport] = useState(false);
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
+  const [checked, setChecked] = useState(false);
+  const showResults = submitted || checked;
   const activeSection = sections.find(s => s.id === activeTab) ?? sections[0];
 
   useEffect(() => {
@@ -307,7 +309,8 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                     const timeVal = questionTimes[qid] ?? 0;
 
                     let correct: boolean | null = null;
-                    if (submitted && correctKey) {
+                    const hasAns = answers[qid] !== undefined && answers[qid] !== '' && !(Array.isArray(answers[qid]) && answers[qid].length === 0);
+                    if (correctKey && (submitted || (checked && hasAns))) {
                       if (activeSection.type === 'NAT') correct = verifyNat(qid, correctKey as string);
                       else if (activeSection.type === 'MCQ') correct = verifyMcq(qid, correctKey as string);
                       else correct = verifyMsq(qid, correctKey);
@@ -345,10 +348,10 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                                 onChange={e => handleNat(qid, e.target.value)}
                                 placeholder="—"
                                 disabled={submitted}
-                                className={`nat-input ${submitted && correct === true ? 'correct' : submitted && correct === false ? 'wrong' : ''}`}
+                                className={`nat-input ${showResults && correct === true ? 'correct' : showResults && correct === false ? 'wrong' : ''}`}
                                 onClick={e => e.stopPropagation()}
                               />
-                              {submitted && correctKey && (
+                              {showResults && correctKey && correct !== null && (
                                 <div className={`verify-note result-${correct ? 'ok' : 'bad'}`}>
                                   {correct ? '✓ Correct' : `✗ Key: ${correctKey}`}
                                 </div>
@@ -361,7 +364,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                                   const selected = activeSection.type === 'MSQ'
                                     ? ((answers[qid] as string[]) ?? []).includes(opt)
                                     : answers[qid] === opt;
-                                  const isCorrectOpt = submitted && correctKey && (
+                                  const isCorrectOpt = showResults && correctKey && (
                                     activeSection.type === 'MSQ'
                                       ? (Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? (correctKey as string[][]).flat() : (correctKey as string[])) : [correctKey as string]).map((x: string) => String(x).toUpperCase()).includes(opt.toUpperCase())
                                       : String(correctKey).toUpperCase() === opt.toUpperCase()
@@ -372,7 +375,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                                       id={`omr-btn-choice-${qid}-${opt}`}
                                       disabled={submitted}
                                       onClick={e => { e.stopPropagation(); if (activeSection.type === 'MSQ') { handleMsq(qid, opt); } else { handleMcq(qid, opt); } }}
-                                      className={`choice-btn ${selected ? (submitted ? (isCorrectOpt ? 'correct' : 'wrong') : 'selected') : (submitted && isCorrectOpt ? 'correct' : '')}`}
+                                      className={`choice-btn ${selected ? (showResults ? (isCorrectOpt ? 'correct' : 'wrong') : 'selected') : (showResults && isCorrectOpt ? 'correct' : '')}`}
                                       aria-label={activeSection.type === 'MSQ' ? `Option ${opt} for Question ${qid} (multiple select)` : `Option ${opt} for Question ${qid}`}
                                     >
                                       {opt}
@@ -380,7 +383,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                                   );
                                 })}
                               </div>
-                              {submitted && correctKey && (
+                              {showResults && correctKey && correct !== null && (
                                 <div className={`verify-note result-${correct ? 'ok' : 'bad'}`}>
                                   {correct 
                                     ? '✓ Correct' 
@@ -449,7 +452,8 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                 const timeVal = questionTimes[qid] ?? 0;
 
                 let correct: boolean | null = null;
-                if (submitted && correctKey) {
+                const hasAns = answers[qid] !== undefined && answers[qid] !== '' && !(Array.isArray(answers[qid]) && answers[qid].length === 0);
+                if (correctKey && (submitted || (checked && hasAns))) {
                   if (sec.type === 'NAT') correct = verifyNat(qid, correctKey as string);
                   else if (sec.type === 'MCQ') correct = verifyMcq(qid, correctKey as string);
                   else correct = verifyMsq(qid, correctKey);
@@ -497,10 +501,10 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                             onChange={e => handleNat(qid, e.target.value)}
                             placeholder="Type value..."
                             disabled={submitted}
-                            className={`nat-input dock-input ${submitted && correct === true ? 'correct' : submitted && correct === false ? 'wrong' : ''}`}
+                            className={`nat-input dock-input ${showResults && correct === true ? 'correct' : showResults && correct === false ? 'wrong' : ''}`}
                             onClick={e => e.stopPropagation()}
                           />
-                          {submitted && correctKey && (
+                          {showResults && correctKey && correct !== null && (
                             <span className={`verify-note text-[10px] result-${correct ? 'ok' : 'bad'}`}>
                               {correct ? '✓ Correct' : `✗ Key: ${correctKey}`}
                             </span>
@@ -513,7 +517,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                               const selected = sec.type === 'MSQ'
                                 ? ((answers[qid] as string[]) ?? []).includes(opt)
                                 : answers[qid] === opt;
-                              const isCorrectOpt = submitted && correctKey && (
+                              const isCorrectOpt = showResults && correctKey && (
                                 sec.type === 'MSQ'
                                   ? (Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? (correctKey as string[][]).flat() : (correctKey as string[])) : [correctKey as string]).map((x: string) => String(x).toUpperCase()).includes(opt.toUpperCase())
                                   : String(correctKey).toUpperCase() === opt.toUpperCase()
@@ -524,7 +528,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                                   id={`omr-dock-btn-choice-${qid}-${opt}`}
                                   disabled={submitted}
                                   onClick={e => { e.stopPropagation(); if (sec.type === 'MSQ') { handleMsq(qid, opt); } else { handleMcq(qid, opt); } }}
-                                  className={`choice-btn ${selected ? (submitted ? (isCorrectOpt ? 'correct' : 'wrong') : 'selected') : (submitted && isCorrectOpt ? 'correct' : '')}`}
+                                  className={`choice-btn ${selected ? (showResults ? (isCorrectOpt ? 'correct' : 'wrong') : 'selected') : (showResults && isCorrectOpt ? 'correct' : '')}`}
                                   aria-label={sec.type === 'MSQ' ? `Option ${opt} for Question ${qid} (multiple choice)` : `Option ${opt} for Question ${qid}`}
                                 >
                                   {opt}
@@ -532,7 +536,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                               );
                             })}
                           </div>
-                          {submitted && correctKey && (
+                          {showResults && correctKey && correct !== null && (
                             <span className={`verify-note text-[10px] result-${correct ? 'ok' : 'bad'}`}>
                               {correct 
                                 ? '✓ Correct' 
@@ -551,18 +555,28 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
         </div>
       )}
 
-      {/* Footer controls: Submit and Reset */}
+      {/* Footer controls: Check toggle, Submit and Reset */}
       <div className="sheet-footer">
         {!submitted ? (
-          <button 
-            onClick={() => setShowConfirmSubmit(true)}
-            id="omr-btn-check-answers"
-            className="submit-practice-btn"
-            aria-label="Grade response sheet and check answers"
-          >
-            <Check size={14} />
-            <span>Check Answers</span>
-          </button>
+          <>
+            <button
+              onClick={() => setChecked(c => !c)}
+              id="omr-btn-check-toggle"
+              className={`check-toggle-btn ${checked ? 'active' : ''}`}
+              aria-label={checked ? 'Hide answer check results' : 'Check answered questions instantly'}
+            >
+              {checked ? <><X size={11} /> Hide Check</> : <><Check size={11} /> Check Answer</>}
+            </button>
+            <button 
+              onClick={() => setShowConfirmSubmit(true)}
+              id="omr-btn-check-answers"
+              className="submit-practice-btn"
+              aria-label="Grade response sheet and check answers"
+            >
+              <Award size={14} />
+              <span>Submit All</span>
+            </button>
+          </>
         ) : (
           <div className="flex flex-col gap-2 w-full">
             <button 

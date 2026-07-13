@@ -1191,6 +1191,31 @@ button:active { opacity: 0.8; }
 .submit-practice-btn:active {
   transform: scale(0.97);
 }
+.check-toggle-btn {
+  width: 100%;
+  height: 24px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+.check-toggle-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.check-toggle-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(120, 182, 158, 0.08);
+}
 .submit-practice-btn.check-answers-active {
   background: transparent;
   border: 1px solid var(--accent);
