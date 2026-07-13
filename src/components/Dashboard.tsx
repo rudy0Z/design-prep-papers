@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, Play, FileWarning, RefreshCw, Bookmark, Circle, Timer, CheckCircle2, Download } from 'lucide-react';
+import { Search, Play, FileWarning, RefreshCw, Key, Circle, Timer, CheckCircle2, Download } from 'lucide-react';
 import { storage } from '../utils/storage';
 import { QuestionSection } from '../utils/scoring';
 
@@ -226,7 +226,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ papers, onSelectPaper }) =
                                 className="dl-btn"
                                 aria-label="Download answer key"
                               >
-                                <Bookmark size={11} />
+                                <Key size={11} />
                               </a>
                             )}
                           </div>
