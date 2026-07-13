@@ -59,6 +59,7 @@ interface HeaderProps {
   setIsOmrOpen: (open: boolean) => void;
   isSaving: boolean;
   submitted: boolean;
+  hasKeys: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -88,7 +89,8 @@ export const Header: React.FC<HeaderProps> = ({
   isOmrOpen,
   setIsOmrOpen,
   isSaving,
-  submitted
+  submitted,
+  hasKeys
 }) => {
   const [showTimerSettings, setShowTimerSettings] = useState(false);
   const [showPaperDropdown, setShowPaperDropdown] = useState(false);
@@ -232,15 +234,15 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
         
         <button 
-          onClick={() => setIsOmrOpen(!isOmrOpen)} 
-          className={`studio-btn ${isOmrOpen ? 'active' : ''}`} 
+          onClick={() => { if (hasKeys) setIsOmrOpen(!isOmrOpen); }} 
+          className={`studio-btn ${isOmrOpen ? 'active' : ''} ${!hasKeys ? 'disabled' : ''}`}
           id="workspace-btn-toggle-omr"
-          title="Toggle response sheet panel (S / O)"
+          title={hasKeys ? "Toggle response sheet panel (S / O)" : "No answer key available for this paper"}
           aria-label="Toggle response sheet panel"
         >
           <FileText size={14} />
           <span>{isOmrOpen ? 'Hide Response Sheet' : 'Response Sheet'}</span>
-          <kbd className="kbd-badge">S</kbd>
+          {hasKeys && <kbd className="kbd-badge">S</kbd>}
         </button>
       </div>
 

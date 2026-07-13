@@ -448,7 +448,7 @@ export const Workspace: React.FC = () => {
           handleSelectEraser();
         } else if (key === 'c') {
           handleClear();
-        } else if (key === 'o' || key === 's') {
+        } else if ((key === 'o' || key === 's') && currentPaper?.keys) {
           setIsOmrOpen(prev => !prev);
         } else if (key === '[' || e.key === 'ArrowLeft') {
           if (pageNumber > 1) handlePageChange(pageNumber - 1);
@@ -592,6 +592,7 @@ export const Workspace: React.FC = () => {
         setIsOmrOpen={setIsOmrOpen}
         isSaving={isSaving}
         submitted={submitted}
+        hasKeys={!!currentPaper?.keys}
       />
 
       <div className="workspace-grid relative">

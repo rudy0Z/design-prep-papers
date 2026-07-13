@@ -361,6 +361,11 @@ button:active { opacity: 0.8; }
   color: var(--accent);
   border-color: var(--accent);
 }
+.studio-btn.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 
 .icon-btn {
   width: 30px; height: 30px;
@@ -1216,6 +1221,12 @@ button:active { opacity: 0.8; }
   color: var(--accent);
   background: rgba(120, 182, 158, 0.08);
 }
+.check-toggle-btn.disabled,
+.submit-practice-btn.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 .submit-practice-btn.check-answers-active {
   background: transparent;
   border: 1px solid var(--accent);
@@ -2068,7 +2079,7 @@ button:active { opacity: 0.8; }
 
 .linear-table-row {
   display: grid;
-  grid-template-columns: 28px 1.5fr 1fr 1.2fr 68px;
+  grid-template-columns: 28px 1.5fr 1fr 1.2fr auto 68px;
   align-items: center;
   gap: 16px;
   padding: 11px 16px;
@@ -2124,6 +2135,32 @@ button:active { opacity: 0.8; }
 .cell-progress {
   display: flex;
   align-items: center;
+}
+
+.cell-downloads {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.dl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+.dl-btn:hover {
+  color: var(--accent);
+  border-color: rgba(120, 182, 158, 0.3);
+  background: rgba(120, 182, 158, 0.08);
 }
 
 .cell-action {
@@ -2277,7 +2314,7 @@ button:active { opacity: 0.8; }
   .linear-table-row {
     grid-template-columns: 28px 1fr 68px;
   }
-  .cell-meta, .cell-progress {
+  .cell-meta, .cell-progress, .cell-downloads {
     display: none !important;
   }
 }

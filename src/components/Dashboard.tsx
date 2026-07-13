@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, Play, FileWarning, RefreshCw, Bookmark, Circle, Timer, CheckCircle2 } from 'lucide-react';
+import { Search, Play, FileWarning, RefreshCw, Bookmark, Circle, Timer, CheckCircle2, Download } from 'lucide-react';
 import { storage } from '../utils/storage';
 import { QuestionSection } from '../utils/scoring';
 
@@ -10,6 +10,8 @@ interface PaperInfo {
   exam: string;
   year: number;
   sections: QuestionSection[];
+  pdfPath?: string;
+  ansPath?: string | null;
 }
 
 interface DashboardProps {
@@ -199,6 +201,33 @@ export const Dashboard: React.FC<DashboardProps> = ({ papers, onSelectPaper }) =
                               </div>
                             ) : (
                               <span className="text-muted text-[11px]">Not started</span>
+                            )}
+                          </div>
+
+                          <div className="cell-downloads">
+                            {paper.pdfPath && (
+                              <a
+                                href={paper.pdfPath}
+                                download
+                                onClick={e => e.stopPropagation()}
+                                title="Download Paper PDF"
+                                className="dl-btn"
+                                aria-label="Download paper PDF"
+                              >
+                                <Download size={11} />
+                              </a>
+                            )}
+                            {paper.ansPath && (
+                              <a
+                                href={paper.ansPath}
+                                download
+                                onClick={e => e.stopPropagation()}
+                                title="Download Answer Key"
+                                className="dl-btn"
+                                aria-label="Download answer key"
+                              >
+                                <Bookmark size={11} />
+                              </a>
                             )}
                           </div>
 

@@ -560,18 +560,22 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
         {!submitted ? (
           <>
             <button
-              onClick={() => setChecked(c => !c)}
+              onClick={() => { if (keys) setChecked(c => !c); }}
               id="omr-btn-check-toggle"
-              className={`check-toggle-btn ${checked ? 'active' : ''}`}
+              className={`check-toggle-btn ${checked ? 'active' : ''} ${!keys ? 'disabled' : ''}`}
+              disabled={!keys}
               aria-label={checked ? 'Hide answer check results' : 'Check answered questions instantly'}
+              title={!keys ? 'No answer key available for this paper' : ''}
             >
               {checked ? <><X size={11} /> Hide Check</> : <><Check size={11} /> Check Answer</>}
             </button>
             <button 
-              onClick={() => setShowConfirmSubmit(true)}
+              onClick={() => { if (keys) setShowConfirmSubmit(true); }}
               id="omr-btn-check-answers"
-              className="submit-practice-btn"
+              className={`submit-practice-btn ${!keys ? 'disabled' : ''}`}
+              disabled={!keys}
               aria-label="Grade response sheet and check answers"
+              title={!keys ? 'No answer key available for this paper' : ''}
             >
               <Award size={14} />
               <span>Submit All</span>
