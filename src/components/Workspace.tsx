@@ -428,6 +428,21 @@ export const Workspace: React.FC = () => {
         } else if (key === 'escape') {
           setIsOmrOpen(false);
           setConfirmModal(null);
+        } else if (activeQuestionId && (key === '1' || key === '2' || key === '3' || key === '4')) {
+          e.preventDefault();
+          const opt = key === '1' ? 'A' : key === '2' ? 'B' : key === '3' ? 'C' : 'D';
+          const qNum = parseInt(activeQuestionId);
+          const sec = currentPaper?.sections.find(s => qNum >= s.startQ && qNum < s.startQ + s.count);
+          if (sec && !submitted) {
+            if (sec.type === 'MSQ') {
+              const val = answers[activeQuestionId];
+              const arr = Array.isArray(val) ? (val as string[]) : [];
+              const newVal = arr.includes(opt) ? arr.filter(o => o !== opt) : [...arr, opt];
+              handleAnswerChange(activeQuestionId, newVal);
+            } else if (sec.type === 'MCQ') {
+              handleAnswerChange(activeQuestionId, opt);
+            }
+          }
         }
       }
     };
@@ -442,7 +457,12 @@ export const Workspace: React.FC = () => {
     handleSelectEraser,
     handlePageChange,
     pageNumber,
-    numPages
+    numPages,
+    activeQuestionId,
+    answers,
+    handleAnswerChange,
+    currentPaper,
+    submitted
   ]);
 
   const handleResetSession = () => {
@@ -578,7 +598,7 @@ export const Workspace: React.FC = () => {
                       onClick={handleSelectHighlighter} 
                       className={brushColor.startsWith('rgba') ? 'active' : ''} 
                       id="palette-btn-highlighter"
-                      title="Highlighter tool"
+                      title="Highlighter tool (H)"
                       aria-label="Highlighter transparent tool"
                     >
                       <Highlighter size={14} />
@@ -684,6 +704,14 @@ export const Workspace: React.FC = () => {
                   >
                     <Trash2 size={14} />
                   </button>
+
+                  <div className="v-divider hide-mobile" />
+
+                  <div className="palette-kbd-help hide-mobile">
+                    <span><kbd className="kbd-badge">P</kbd> Pencil</span>
+                    <span><kbd className="kbd-badge">H</kbd> High</span>
+                    <span><kbd className="kbd-badge">E</kbd> Erase</span>
+                  </div>
                 </div>
               )}
 

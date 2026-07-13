@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, Play, FileWarning, RefreshCw, Bookmark } from 'lucide-react';
+import { Search, Play, FileWarning, RefreshCw, Bookmark, Circle, Timer, CheckCircle2 } from 'lucide-react';
 import { storage } from '../utils/storage';
 import { QuestionSection } from '../utils/scoring';
 
@@ -137,111 +137,72 @@ export const Dashboard: React.FC<DashboardProps> = ({ papers, onSelectPaper }) =
       {/* Body */}
       <div className="dashboard-body">
         
-        {/* Continue Practicing Section */}
-        {inProgressPapers.length > 0 && !search && filter === 'all' && (
-          <div className="dashboard-section" style={{ marginBottom: '36px' }}>
-            <div className="dashboard-section-label flex items-center gap-1.5" style={{ color: 'var(--accent)' }}>
-              <Bookmark size={11} fill="currentColor" />
-              <span>Continue practicing</span>
-            </div>
-            
-            <div className="paper-grid" style={{ marginBottom: '12px' }}>
-              {inProgressPapers.map((paper) => {
-                const prog = progress[paper.id] || { attempted: 0, total: 0 };
-                const percent = prog.total > 0 ? Math.round((prog.attempted / prog.total) * 100) : 0;
-                return (
-                  <button
-                    key={`inprogress-${paper.id}`}
-                    id={`inprogress-paper-card-${paper.id}`}
-                    onClick={() => onSelectPaper(paper.id)}
-                    className="paper-card in-progress"
-                    style={{ borderLeft: '3px solid var(--accent)' }}
-                  >
-                    <div className="paper-year serif">{paper.year}</div>
-                    
-                    <div className="paper-meta">
-                      <div className="flex items-center gap-2">
-                        <span className={`paper-exam-chip ${paper.exam === 'CEED' ? 'ceed' : ''}`}>
-                          {paper.exam}
-                        </span>
-                        <span className="mono text-[10px] font-semibold" style={{ color: 'var(--accent)' }}>
-                          {percent}% done
-                        </span>
-                      </div>
-                      <div className="paper-progress-text">
-                        {prog.attempted} / {prog.total} answered
-                      </div>
-                      <div className="paper-progress-bar">
-                        <div className="paper-progress-fill" style={{ width: `${percent}%` }} />
-                      </div>
-                    </div>
-
-                    <div className="paper-action flex items-center gap-1">
-                      <span>Resume</span>
-                      <Play size={9} fill="currentColor" />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Papers List */}
+        {/* Unified Papers List */}
         <div className="dashboard-section">
           <div className="dashboard-section-label">
-            {filteredPapers.length} paper{filteredPapers.length !== 1 ? 's' : ''} listed
+            Official PYQs · {filteredPapers.length} paper{filteredPapers.length !== 1 ? 's' : ''}
           </div>
 
           {filteredPapers.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div className="linear-table">
               {groupedPapers.map(([year, yearPapers]) => (
-                <div key={year} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ 
-                    fontFamily: 'var(--font-mono)', 
-                    fontSize: '11px', 
-                    fontWeight: 600, 
-                    color: 'var(--muted-2)',
-                    borderBottom: '1px solid var(--border)',
-                    paddingBottom: '4px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em'
-                  }}>
+                <div key={year} className="linear-table-group">
+                  <div className="linear-table-group-header mono">
                     {year} Edition
                   </div>
                   
-                  <div className="paper-grid">
+                  <div className="linear-table-rows">
                     {yearPapers.map((paper) => {
                       const prog = progress[paper.id] || { attempted: 0, total: 0 };
                       const percent = prog.total > 0 ? Math.round((prog.attempted / prog.total) * 100) : 0;
                       const hasStarted = prog.attempted > 0;
+                      const isCompleted = hasStarted && prog.attempted === prog.total;
 
                       return (
                         <button
                           key={paper.id}
-                          id={`paper-card-${paper.id}`}
+                          id={`paper-row-${paper.id}`}
                           onClick={() => onSelectPaper(paper.id)}
-                          className="paper-card"
+                          className={`linear-table-row ${hasStarted ? 'in-progress' : ''}`}
+                          aria-label={`Open ${paper.exam} ${paper.year} paper, status: ${isCompleted ? 'completed' : hasStarted ? `${percent}% done` : 'not started'}`}
                         >
-                          <div className="paper-year serif">{paper.year}</div>
-
-                          <div className="paper-meta">
-                            <span className={`paper-exam-chip ${paper.exam === 'CEED' ? 'ceed' : ''}`}>
-                              {paper.exam}
-                            </span>
-                            <div className="paper-progress-text">
-                              {hasStarted
-                                ? `${prog.attempted} / ${prog.total} answered`
-                                : `${paper.sections.length} sections · not started`}
-                            </div>
-                            {hasStarted && (
-                              <div className="paper-progress-bar">
-                                <div className="paper-progress-fill" style={{ width: `${percent}%` }} />
-                              </div>
+                          <div className="cell-status">
+                            {isCompleted ? (
+                              <CheckCircle2 size={13} className="status-icon text-ok" />
+                            ) : hasStarted ? (
+                              <Timer size={13} className="status-icon text-warning animate-pulse" />
+                            ) : (
+                              <Circle size={13} className="status-icon text-muted" />
                             )}
                           </div>
 
-                          <div className="paper-action">
+                          <div className="cell-title">
+                            <span className={`paper-exam-chip ${paper.exam.toLowerCase()}`}>
+                              {paper.exam}
+                            </span>
+                            <span className="paper-name">{paper.year}</span>
+                          </div>
+
+                          <div className="cell-meta text-muted mono">
+                            {paper.sections.length} Sections · {prog.total} Qs
+                          </div>
+
+                          <div className="cell-progress">
+                            {hasStarted ? (
+                              <div className="progress-container">
+                                <div className="progress-bar">
+                                  <div className="progress-fill" style={{ width: `${percent}%` }} />
+                                </div>
+                                <span className="progress-label mono text-accent">
+                                  {percent}% <span className="progress-counts">({prog.attempted}/{prog.total})</span>
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-muted text-[11px]">Not started</span>
+                            )}
+                          </div>
+
+                          <div className="cell-action text-muted">
                             {hasStarted ? 'Resume' : 'Start'} →
                           </div>
                         </button>

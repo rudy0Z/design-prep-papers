@@ -174,20 +174,32 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
 
   return (
     <div className={`omr-sheet ${omrMode === 'page' ? 'sheet-docked' : 'sheet-full'} ${isOmrOpen ? 'open' : 'collapsed'}`}>
-      {/* Drawer Toggle Handle */}
-      <button
-        onClick={() => setIsOmrOpen(!isOmrOpen)}
-        className={`omr-drawer-handle ${isOmrOpen ? 'open' : 'closed'}`}
-        id="omr-drawer-toggle-handle"
-        title={isOmrOpen ? 'Hide response sheet' : 'Show response sheet'}
-        aria-label="Toggle response sheet drawer"
-      >
-        <FileText size={14} />
-      </button>
-
       {/* Title & View Switcher */}
       <div className="sheet-header">
-        <h2 id="omr-sheet-title">Response Sheet</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button 
+            onClick={() => setIsOmrOpen(false)}
+            className="sheet-close-btn"
+            title="Close response sheet"
+            aria-label="Close response sheet"
+            style={{ 
+              border: '1px solid rgba(255,255,255,0.1)', 
+              background: 'rgba(255,255,255,0.05)', 
+              cursor: 'pointer', 
+              padding: '5px 7px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              color: 'var(--text)', 
+              borderRadius: '6px',
+              transition: 'all 0.15s ease',
+              flexShrink: 0
+            }}
+          >
+            <X size={14} />
+          </button>
+          <h2 id="omr-sheet-title" style={{ margin: 0 }}>Response Sheet</h2>
+        </div>
         <div className="view-toggle-segmented">
           <button 
             onClick={() => setOmrMode('page')}

@@ -192,11 +192,6 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
         </div>
-
-        <div className="v-divider" />
-        <div className="kicker" style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
-          Practice Studio · {currentPaper?.exam} {currentPaper?.year}
-        </div>
       </div>
 
       <div className="toolbar-cluster center">
@@ -206,7 +201,7 @@ export const Header: React.FC<HeaderProps> = ({
             disabled={pageNumber <= 1} 
             className="mini-icon" 
             id="workspace-btn-prev-page"
-            title="Previous page"
+            title="Previous page ([)"
             aria-label="Previous page"
           >
             <ChevronLeft size={14} />
@@ -217,7 +212,7 @@ export const Header: React.FC<HeaderProps> = ({
             disabled={pageNumber >= numPages} 
             className="mini-icon" 
             id="workspace-btn-next-page"
-            title="Next page"
+            title="Next page (])"
             aria-label="Next page"
           >
             <ChevronRight size={14} />
@@ -228,20 +223,24 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => setDrawMode(!drawMode)} 
           className={`studio-btn ${drawMode ? 'active' : ''}`} 
           id="workspace-btn-toggle-draw"
-          title="Toggle annotation mode"
+          title="Toggle annotation mode (P / D)"
           aria-label="Toggle drawing annotations mode"
         >
-          <Edit3 size={15} /> Draw
+          <Edit3 size={14} />
+          <span>Draw</span>
+          <kbd className="kbd-badge">D</kbd>
         </button>
         
         <button 
           onClick={() => setIsOmrOpen(!isOmrOpen)} 
           className={`studio-btn ${isOmrOpen ? 'active' : ''}`} 
           id="workspace-btn-toggle-omr"
-          title="Toggle response sheet panel"
-          aria-label="Toggle response sheet answer panel"
+          title="Toggle response sheet panel (S / O)"
+          aria-label="Toggle response sheet panel"
         >
-          <FileText size={15} /> {isOmrOpen ? 'Hide Sheet' : 'Show Sheet'}
+          <FileText size={14} />
+          <span>{isOmrOpen ? 'Hide Response Sheet' : 'Response Sheet'}</span>
+          <kbd className="kbd-badge">S</kbd>
         </button>
       </div>
 
