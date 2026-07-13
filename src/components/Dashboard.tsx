@@ -24,7 +24,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ papers, onSelectPaper }) =
   const [isLoadingProgress, setIsLoadingProgress] = useState(true);
 
   // Parallel pre-loading of progress maps using Promise.all
+  // Reloads on every mount (navigating back from a paper) to reflect latest answers
   useEffect(() => {
+    let cancelled = false;
     const loadAllProgress = async () => {
       setIsLoadingProgress(true);
       try {
@@ -46,15 +48,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ papers, onSelectPaper }) =
             progressMap[paper.id] = { attempted, total };
           })
         );
-        setProgress(progressMap);
+        if (!cancelled) setProgress(progressMap);
       } catch (err) {
-        console.error('Error loading progress:', err);
+        if (!cancelled) console.error('Error loading progress:', err);
       } finally {
-        setIsLoadingProgress(false);
+        if (!cancelled) setIsLoadingProgress(false);
       }
     };
     if (papers.length > 0) loadAllProgress();
-  }, [papers]);
+    return () => { cancelled = true; };
+  }, []);
 
   const filteredPapers = useMemo(() => papers.filter((p) => {
     const matchFilter = filter === 'all' || p.exam.toLowerCase() === filter;
