@@ -1,6 +1,8 @@
 'use client';
+/* eslint-disable react-hooks/set-state-in-effect */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Pencil, Highlighter, Eraser, Undo2, Redo2, Trash2 } from 'lucide-react';
 import { Header } from './Header';
 import { PdfViewer } from './PdfViewer';
 import { OmrSheet } from './OmrSheet';
@@ -37,7 +39,13 @@ export const Workspace: React.FC = () => {
   const [redoStrokes, setRedoStrokes] = useState<Stroke[]>([]);
   const [answers, setAnswers] = useState<{ [questionId: string]: string | string[] }>({});
   const [verifiedSections, setVerifiedSections] = useState<string[]>([]);
-  const [isOmrCollapsed, setIsOmrCollapsed] = useState<boolean>(false);
+  const [isOmrOpen, setIsOmrOpen] = useState<boolean>(false);
+  const [lastPencilColor, setLastPencilColor] = useState<string>('#ff3366');
+  const [lastPencilWidth, setLastPencilWidth] = useState<number>(3);
+  const [lastHighlighterColor, setLastHighlighterColor] = useState<string>('rgba(255, 235, 59, 0.45)');
+  const [lastHighlighterWidth, setLastHighlighterWidth] = useState<number>(12);
+  
+  const colorPickerRef = useRef<HTMLInputElement | null>(null);
   const [timerMode, setTimerMode] = useState<'stopwatch' | 'timer'>('stopwatch');
   const [timerDuration, setTimerDuration] = useState<number>(10800);
   const [timerRemaining, setTimerRemaining] = useState<number>(10800);
@@ -123,7 +131,7 @@ export const Workspace: React.FC = () => {
       setActiveQuestionId(null);
       setManualRunningQid(null);
       setRedoStrokes([]);
-      setIsOmrCollapsed(false);
+      setIsOmrOpen(false);
     });
 
     return () => {
@@ -224,11 +232,11 @@ export const Workspace: React.FC = () => {
     }
   };
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = useCallback((page: number) => {
     const clamped = Math.max(1, Math.min(page, numPages));
     setPageNumber(clamped);
     if (activePaperId) storage.savePageNumber(activePaperId, clamped);
-  };
+  }, [numPages, activePaperId]);
 
   const handleAnswerChange = (qid: string, val: string | string[]) => {
     const updated = { ...answers, [qid]: val };
@@ -248,20 +256,20 @@ export const Workspace: React.FC = () => {
     }
   };
 
-  const handleStrokesChange = (newStrokes: Stroke[]) => {
+  const handleStrokesChange = useCallback((newStrokes: Stroke[]) => {
     if (newStrokes.length > strokes.length) setRedoStrokes([]);
     setStrokes(newStrokes);
     if (activePaperId) {
       setIsSaving(true);
       storage.saveDrawingStrokes(activePaperId, pageNumber, newStrokes).then(() => setIsSaving(false));
     }
-  };
+  }, [activePaperId, pageNumber, strokes]);
 
   // Auto-focus active question based on pageNumber and unanswered questions
   useEffect(() => {
     if (!currentPaper || trackingMode !== 'auto' || activeQuestionId) return;
 
-    const pageQs = (currentPaper as any).pageQuestions?.[String(pageNumber)];
+    const pageQs = currentPaper.pageQuestions?.[String(pageNumber)];
     if (!pageQs || pageQs.length === 0) return;
 
     // Find the first question on the page that doesn't have an answer yet
@@ -319,6 +327,74 @@ export const Workspace: React.FC = () => {
     }
   }, [activePaperId, pageNumber, redoStrokes, strokes]);
 
+  const handleSelectPencil = useCallback(() => {
+    if (brushColor === 'eraser') {
+      setBrushColor(lastPencilColor);
+      setBrushWidth(lastPencilWidth);
+    } else if (brushColor.startsWith('rgba')) {
+      setLastHighlighterColor(brushColor);
+      setLastHighlighterWidth(brushWidth);
+      setBrushColor(lastPencilColor);
+      setBrushWidth(lastPencilWidth);
+    }
+  }, [brushColor, lastPencilColor, lastPencilWidth, brushWidth]);
+
+  const handleSelectHighlighter = useCallback(() => {
+    if (brushColor === 'eraser') {
+      setBrushColor(lastHighlighterColor);
+      setBrushWidth(lastHighlighterWidth);
+    } else if (!brushColor.startsWith('rgba')) {
+      setLastPencilColor(brushColor);
+      setLastPencilWidth(brushWidth);
+      setBrushColor(lastHighlighterColor);
+      setBrushWidth(lastHighlighterWidth);
+    }
+  }, [brushColor, lastHighlighterColor, lastHighlighterWidth, brushWidth]);
+
+  const handleSelectEraser = useCallback(() => {
+    if (brushColor !== 'eraser') {
+      if (brushColor.startsWith('rgba')) {
+        setLastHighlighterColor(brushColor);
+        setLastHighlighterWidth(brushWidth);
+      } else {
+        setLastPencilColor(brushColor);
+        setLastPencilWidth(brushWidth);
+      }
+      setBrushColor('eraser');
+      setBrushWidth(16);
+    }
+  }, [brushColor, brushWidth]);
+
+  const handleColorChange = useCallback((color: string) => {
+    if (color.startsWith('rgba')) {
+      setBrushColor(color);
+      setLastHighlighterColor(color);
+    } else {
+      setBrushColor(color);
+      setLastPencilColor(color);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (brushColor === 'eraser') return;
+    if (brushColor.startsWith('rgba')) {
+      setLastHighlighterWidth(brushWidth);
+    } else {
+      setLastPencilWidth(brushWidth);
+    }
+  }, [brushWidth, brushColor]);
+
+  const handleClear = useCallback(() => {
+    setConfirmModal({
+      title: 'Clear Page Drawings?',
+      message: `This will permanently erase all vector drawing lines and sketch notes on Page ${pageNumber}. This action cannot be undone.`,
+      onConfirm: () => {
+        setRedoStrokes([]);
+        handleStrokesChange([]);
+      }
+    });
+  }, [handleStrokesChange, pageNumber]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeEl = document.activeElement;
@@ -334,37 +410,46 @@ export const Workspace: React.FC = () => {
         const key = e.key.toLowerCase();
         if (key === 'd' || key === 'p') {
           setDrawMode(true);
-          if (brushColor === 'eraser') {
-            setBrushColor('#ff3366');
-          }
+          handleSelectPencil();
+        } else if (key === 'h') {
+          setDrawMode(true);
+          handleSelectHighlighter();
         } else if (key === 'e') {
           setDrawMode(true);
-          setBrushColor('eraser');
+          handleSelectEraser();
         } else if (key === 'c') {
           handleClear();
+        } else if (key === 'o' || key === 's') {
+          setIsOmrOpen(prev => !prev);
+        } else if (key === '[') {
+          if (pageNumber > 1) handlePageChange(pageNumber - 1);
+        } else if (key === ']') {
+          if (pageNumber < numPages) handlePageChange(pageNumber + 1);
+        } else if (key === 'escape') {
+          setIsOmrOpen(false);
+          setConfirmModal(null);
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleRedo, handleUndo, brushColor, setBrushColor, setDrawMode]);
-
-  const handleClear = () => {
-    setConfirmModal({
-      title: 'Clear Page Drawings?',
-      message: 'This will permanently delete all vector annotation lines drawn on the current page. This action cannot be undone.',
-      onConfirm: () => {
-        setRedoStrokes([]);
-        handleStrokesChange([]);
-      }
-    });
-  };
+  }, [
+    handleRedo,
+    handleUndo,
+    handleClear,
+    handleSelectPencil,
+    handleSelectHighlighter,
+    handleSelectEraser,
+    handlePageChange,
+    pageNumber,
+    numPages
+  ]);
 
   const handleResetSession = () => {
     if (!activePaperId) return;
     setConfirmModal({
-      title: 'Reset Practice Session?',
-      message: 'This will permanently clear your answer sheets, time trackers, and canvas sketches for the current paper. This action cannot be undone.',
+      title: 'Reset Session Progress?',
+      message: 'Are you sure you want to reset? This will wipe your digital answer sheet, drawing canvas notes, and time-tracking stats for this paper. Your progress will be lost.',
       onConfirm: async () => {
         setIsSaving(true);
         await storage.resetSession(activePaperId);
@@ -454,31 +539,231 @@ export const Workspace: React.FC = () => {
         setTimerDuration={handleTimerDurationChange}
         isTimerRunning={isTimerRunning}
         setIsTimerRunning={handleIsTimerRunningChange}
-        isOmrCollapsed={isOmrCollapsed}
-        setIsOmrCollapsed={setIsOmrCollapsed}
+        isOmrOpen={isOmrOpen}
+        setIsOmrOpen={setIsOmrOpen}
         isSaving={isSaving}
         submitted={submitted}
       />
 
-      <div className={`workspace-grid ${isOmrCollapsed ? 'omr-hidden' : omrMode === 'page' ? 'omr-mode-dock' : 'omr-mode-full'}`}>
-        <section className={`pdf-pane ${isOmrCollapsed ? 'full' : ''}`}>
+      <div className="workspace-grid relative">
+        <section className="pdf-pane full relative overflow-hidden">
           {currentPaper ? (
-            <PdfViewer
-              pdfUrl={currentPaper.pdfPath}
-              pageNumber={pageNumber}
-              setPageNumber={handlePageChange}
-              setNumPages={setNumPages}
-              drawMode={drawMode}
-              brushColor={brushColor}
-              brushWidth={brushWidth}
-              strokes={strokes}
-              setStrokes={handleStrokesChange}
-              activePaperId={activePaperId}
-            />
+            <>
+              <PdfViewer
+                pdfUrl={currentPaper.pdfPath}
+                pageNumber={pageNumber}
+                setPageNumber={handlePageChange}
+                setNumPages={setNumPages}
+                drawMode={drawMode}
+                brushColor={brushColor}
+                brushWidth={brushWidth}
+                strokes={strokes}
+                setStrokes={handleStrokesChange}
+                activePaperId={activePaperId}
+              />
+
+              {drawMode && (
+                <div className="floating-draw-palette animate-fade-in" id="workspace-draw-palette">
+                  <div className="tool-toggle">
+                    <button 
+                      onClick={handleSelectPencil} 
+                      className={brushColor !== 'eraser' && !brushColor.startsWith('rgba') ? 'active' : ''} 
+                      id="palette-btn-pencil"
+                      title="Pencil tool (P / D)"
+                      aria-label="Pencil drawing tool"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button 
+                      onClick={handleSelectHighlighter} 
+                      className={brushColor.startsWith('rgba') ? 'active' : ''} 
+                      id="palette-btn-highlighter"
+                      title="Highlighter tool"
+                      aria-label="Highlighter transparent tool"
+                    >
+                      <Highlighter size={14} />
+                    </button>
+                    <button 
+                      onClick={handleSelectEraser} 
+                      className={brushColor === 'eraser' ? 'active' : ''} 
+                      id="palette-btn-eraser"
+                      title="Eraser tool (E)"
+                      aria-label="Eraser tool"
+                    >
+                      <Eraser size={14} />
+                    </button>
+                  </div>
+                  
+                  <div className="v-divider" />
+                  
+                  {brushColor !== 'eraser' && (
+                    <div className="swatch-row">
+                      {(brushColor.startsWith('rgba')
+                        ? [
+                            { name: 'Yellow', value: 'rgba(255, 235, 59, 0.45)' },
+                            { name: 'Green', value: 'rgba(139, 195, 74, 0.45)' },
+                            { name: 'Cyan', value: 'rgba(0, 188, 212, 0.45)' },
+                            { name: 'Pink', value: 'rgba(244, 63, 94, 0.45)' }
+                          ]
+                        : [
+                            { name: 'Black', value: '#111111' },
+                            { name: 'Pink', value: '#ff3366' },
+                            { name: 'Violet', value: '#a855f7' },
+                            { name: 'Green', value: '#00ff66' },
+                            { name: 'Blue', value: '#00ccff' }
+                          ]
+                      ).map((color) => (
+                        <button 
+                          key={color.name} 
+                          onClick={() => handleColorChange(color.value)} 
+                          className={`swatch ${brushColor === color.value ? 'active' : ''}`} 
+                          style={{ backgroundColor: color.value.startsWith('rgba') ? color.value.replace('0.45', '1.0') : color.value }} 
+                          title={color.name}
+                          aria-label={`Select color ${color.name}`}
+                        />
+                      ))}
+                      <button 
+                        onClick={() => colorPickerRef.current?.click()} 
+                        className="swatch" 
+                        style={{ background: 'linear-gradient(135deg,#ff3366,#00ff66,#00ccff)' }} 
+                        title="Custom color"
+                        aria-label="Open custom color picker"
+                      />
+                      <input 
+                        ref={colorPickerRef} 
+                        type="color" 
+                        hidden 
+                        value={brushColor.startsWith('#') ? brushColor : '#ffffff'} 
+                        onChange={(e) => handleColorChange(e.target.value)} 
+                      />
+                    </div>
+                  )}
+
+                  <div className="v-divider" />
+
+                  <input 
+                    type="range" 
+                    min="1" 
+                    max="16" 
+                    value={brushWidth} 
+                    onChange={(e) => setBrushWidth(parseInt(e.target.value))} 
+                    className="range" 
+                    title={`Brush width: ${brushWidth}px`} 
+                    aria-label={`Brush stroke width: ${brushWidth} pixels`}
+                    id="palette-range-width"
+                  />
+
+                  <div className="v-divider" />
+
+                  <button 
+                    onClick={handleUndo} 
+                    disabled={strokes.length === 0} 
+                    className="mini-icon" 
+                    title="Undo stroke (Ctrl+Z)"
+                    id="palette-btn-undo"
+                    aria-label="Undo drawing stroke"
+                  >
+                    <Undo2 size={14} />
+                  </button>
+                  <button 
+                    onClick={handleRedo} 
+                    disabled={redoStrokes.length === 0} 
+                    className="mini-icon" 
+                    title="Redo stroke (Ctrl+Y)"
+                    id="palette-btn-redo"
+                    aria-label="Redo drawing stroke"
+                  >
+                    <Redo2 size={14} />
+                  </button>
+                  <button 
+                    onClick={handleClear} 
+                    className="mini-icon" 
+                    title="Clear page drawings (C)"
+                    id="palette-btn-clear"
+                    aria-label="Clear all page drawings"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              )}
+
+              {currentPaper && !isOmrOpen && (
+                <div className="quick-omr-capsule animate-fade-in" id="workspace-quick-omr">
+                  <div className="quick-omr-header">
+                    <span className="mono">Page {pageNumber} Responses</span>
+                    <button className="expand-drawer-btn" onClick={() => setIsOmrOpen(true)} title="Expand response sheet drawer" aria-label="Expand response sheet drawer">
+                      Open Sheet →
+                    </button>
+                  </div>
+                  <div className="quick-omr-questions">
+                    {(() => {
+                      const activePageQs = currentPaper.pageQuestions?.[String(pageNumber)] ?? [];
+                      if (activePageQs.length === 0) {
+                        return <span className="no-qs text-[10px] text-muted-2">No response entries required</span>;
+                      }
+                      return activePageQs.map(qNum => {
+                        const qid = String(qNum);
+                        const sec = currentPaper.sections.find(s => qNum >= s.startQ && qNum < s.startQ + s.count);
+                        if (!sec) return null;
+                        const val = answers[qid];
+                        const isNat = sec.type === 'NAT';
+                        const isMsq = sec.type === 'MSQ';
+
+                        return (
+                          <div key={qid} className="quick-row">
+                            <span className="q-badge mono">Q.{qid}</span>
+                            {isNat ? (
+                              <input
+                                type="text"
+                                placeholder="Value"
+                                value={(val as string) ?? ''}
+                                onChange={(e) => handleAnswerChange(qid, e.target.value)}
+                                disabled={submitted}
+                                className="quick-nat-input"
+                                aria-label={`Numerical response for Question ${qid}`}
+                              />
+                            ) : (
+                              <div className="quick-choices">
+                                {['A', 'B', 'C', 'D'].map(opt => {
+                                  const selected = isMsq
+                                    ? Array.isArray(val) && val.includes(opt)
+                                    : val === opt;
+                                  
+                                  return (
+                                    <button
+                                      key={opt}
+                                      disabled={submitted}
+                                      onClick={() => {
+                                        let newVal: string | string[];
+                                        if (isMsq) {
+                                          const arr = Array.isArray(val) ? (val as string[]) : [];
+                                          newVal = arr.includes(opt) ? arr.filter(o => o !== opt) : [...arr, opt];
+                                        } else {
+                                          newVal = opt;
+                                        }
+                                        handleAnswerChange(qid, newVal);
+                                      }}
+                                      className={`quick-choice-btn ${selected ? 'selected' : ''}`}
+                                      aria-label={isMsq ? `Select option ${opt} for Question ${qid} (multiple choice)` : `Select option ${opt} for Question ${qid}`}
+                                    >
+                                      {opt}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+              )}
+            </>
           ) : null}
         </section>
 
-        <aside className={`omr-pane ${isOmrCollapsed ? 'collapsed' : ''}`}>
+        <aside className={`omr-pane ${isOmrOpen ? 'open' : 'collapsed'}`}>
           {currentPaper ? (
             <OmrSheet
               sections={currentPaper.sections}
@@ -500,10 +785,12 @@ export const Workspace: React.FC = () => {
               omrMode={omrMode}
               setOmrMode={setOmrMode}
               pageNumber={pageNumber}
-              pageQuestions={(currentPaper as any).pageQuestions}
+              pageQuestions={currentPaper.pageQuestions}
               onResetSession={handleResetSession}
               flaggedQuestions={flaggedQuestions}
               onToggleFlag={toggleFlagQuestion}
+              isOmrOpen={isOmrOpen}
+              setIsOmrOpen={setIsOmrOpen}
             />
           ) : null}
         </aside>

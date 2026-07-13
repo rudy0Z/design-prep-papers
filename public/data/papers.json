@@ -433,11 +433,11 @@
     "keys": {
       "NAT": {
         "1": "25",
+        "3": "05",
+        "4": "08",
         "9": "03",
         "10": "04",
-        "3": "05",
-        "16": "06",
-        "4": "08"
+        "16": "06"
       },
       "MSQ": {
         "9": [
@@ -623,7 +623,7 @@
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 26,
+        "count": 23,
         "startQ": 19
       }
     ],
@@ -831,7 +831,7 @@
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 26,
+        "count": 23,
         "startQ": 19
       }
     ],
@@ -1030,7 +1030,7 @@
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 26,
+        "count": 23,
         "startQ": 19
       }
     ],
@@ -1147,7 +1147,7 @@
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 26,
+        "count": 23,
         "startQ": 19
       }
     ],
@@ -1324,20 +1324,20 @@
       {
         "id": "sec-1",
         "type": "NAT",
-        "count": 8,
+        "count": 10,
         "startQ": 1
       },
       {
         "id": "sec-2",
         "type": "MSQ",
         "count": 10,
-        "startQ": 9
+        "startQ": 11
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 26,
-        "startQ": 19
+        "count": 25,
+        "startQ": 21
       }
     ],
     "keys": null,
@@ -1441,14 +1441,14 @@
       {
         "id": "sec-2",
         "type": "MSQ",
-        "count": 10,
+        "count": 8,
         "startQ": 9
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 26,
-        "startQ": 19
+        "count": 25,
+        "startQ": 17
       }
     ],
     "keys": null,
@@ -1550,20 +1550,20 @@
       {
         "id": "sec-1",
         "type": "NAT",
-        "count": 8,
+        "count": 10,
         "startQ": 1
       },
       {
         "id": "sec-2",
         "type": "MSQ",
         "count": 10,
-        "startQ": 9
+        "startQ": 11
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 26,
-        "startQ": 19
+        "count": 25,
+        "startQ": 21
       }
     ],
     "keys": null,
@@ -1667,20 +1667,20 @@
       {
         "id": "sec-1",
         "type": "NAT",
-        "count": 8,
+        "count": 10,
         "startQ": 1
       },
       {
         "id": "sec-2",
         "type": "MSQ",
         "count": 10,
-        "startQ": 9
+        "startQ": 11
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 26,
-        "startQ": 19
+        "count": 30,
+        "startQ": 21
       }
     ],
     "keys": null,
@@ -1772,20 +1772,20 @@
       {
         "id": "sec-1",
         "type": "NAT",
-        "count": 8,
+        "count": 5,
         "startQ": 1
       },
       {
         "id": "sec-2",
         "type": "MSQ",
         "count": 10,
-        "startQ": 9
+        "startQ": 6
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 26,
-        "startQ": 19
+        "count": 35,
+        "startQ": 16
       }
     ],
     "keys": null,
@@ -1888,21 +1888,9 @@
     "sections": [
       {
         "id": "sec-1",
-        "type": "NAT",
-        "count": 8,
-        "startQ": 1
-      },
-      {
-        "id": "sec-2",
-        "type": "MSQ",
-        "count": 10,
-        "startQ": 9
-      },
-      {
-        "id": "sec-3",
         "type": "MCQ",
-        "count": 26,
-        "startQ": 19
+        "count": 50,
+        "startQ": 1
       }
     ],
     "keys": null,
@@ -1991,21 +1979,9 @@
     "sections": [
       {
         "id": "sec-1",
-        "type": "NAT",
-        "count": 8,
-        "startQ": 1
-      },
-      {
-        "id": "sec-2",
-        "type": "MSQ",
-        "count": 10,
-        "startQ": 9
-      },
-      {
-        "id": "sec-3",
         "type": "MCQ",
-        "count": 26,
-        "startQ": 19
+        "count": 50,
+        "startQ": 1
       }
     ],
     "keys": null,
@@ -2096,21 +2072,9 @@
     "sections": [
       {
         "id": "sec-1",
-        "type": "NAT",
-        "count": 8,
-        "startQ": 1
-      },
-      {
-        "id": "sec-2",
-        "type": "MSQ",
-        "count": 10,
-        "startQ": 9
-      },
-      {
-        "id": "sec-3",
         "type": "MCQ",
-        "count": 26,
-        "startQ": 19
+        "count": 40,
+        "startQ": 1
       }
     ],
     "keys": null,
@@ -2194,26 +2158,7 @@
     "year": 2011,
     "pdfPath": "/data/ceed/ceed-2011-q.pdf",
     "ansPath": null,
-    "sections": [
-      {
-        "id": "sec-1",
-        "type": "NAT",
-        "count": 8,
-        "startQ": 1
-      },
-      {
-        "id": "sec-2",
-        "type": "MSQ",
-        "count": 10,
-        "startQ": 9
-      },
-      {
-        "id": "sec-3",
-        "type": "MCQ",
-        "count": 26,
-        "startQ": 19
-      }
-    ],
+    "sections": [],
     "keys": null,
     "pageQuestions": {
       "4": [
@@ -2299,26 +2244,7 @@
     "year": 2010,
     "pdfPath": "/data/ceed/ceed-2010-q.pdf",
     "ansPath": null,
-    "sections": [
-      {
-        "id": "sec-1",
-        "type": "NAT",
-        "count": 8,
-        "startQ": 1
-      },
-      {
-        "id": "sec-2",
-        "type": "MSQ",
-        "count": 10,
-        "startQ": 9
-      },
-      {
-        "id": "sec-3",
-        "type": "MCQ",
-        "count": 26,
-        "startQ": 19
-      }
-    ],
+    "sections": [],
     "keys": null,
     "pageQuestions": {
       "2": [
@@ -3177,20 +3103,20 @@
       {
         "id": "sec-1",
         "type": "NAT",
-        "count": 14,
+        "count": 18,
         "startQ": 1
       },
       {
         "id": "sec-2",
         "type": "MSQ",
-        "count": 15,
-        "startQ": 15
+        "count": 18,
+        "startQ": 19
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 28,
-        "startQ": 30
+        "count": 32,
+        "startQ": 37
       }
     ],
     "keys": {
@@ -3206,10 +3132,10 @@
         "9": "9",
         "10": "11",
         "11": "81",
-        "20": "15",
         "19": "16",
-        "23": "17",
-        "21": "18"
+        "20": "15",
+        "21": "18",
+        "23": "17"
       },
       "MSQ": {
         "19": [
@@ -3454,20 +3380,20 @@
       {
         "id": "sec-1",
         "type": "NAT",
-        "count": 14,
+        "count": 18,
         "startQ": 1
       },
       {
         "id": "sec-2",
         "type": "MSQ",
-        "count": 15,
-        "startQ": 15
+        "count": 18,
+        "startQ": 19
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 28,
-        "startQ": 30
+        "count": 32,
+        "startQ": 37
       }
     ],
     "keys": null,
@@ -3598,20 +3524,20 @@
       {
         "id": "sec-1",
         "type": "NAT",
-        "count": 14,
+        "count": 18,
         "startQ": 1
       },
       {
         "id": "sec-2",
         "type": "MSQ",
-        "count": 15,
-        "startQ": 15
+        "count": 18,
+        "startQ": 19
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 28,
-        "startQ": 30
+        "count": 32,
+        "startQ": 37
       }
     ],
     "keys": {
@@ -3629,8 +3555,8 @@
         "11": "48",
         "12": "13",
         "13": "2044",
-        "49": "16",
-        "40": "18"
+        "40": "18",
+        "49": "16"
       },
       "MSQ": {
         "19": [
@@ -3871,20 +3797,20 @@
       {
         "id": "sec-1",
         "type": "NAT",
-        "count": 14,
+        "count": 18,
         "startQ": 1
       },
       {
         "id": "sec-2",
         "type": "MSQ",
-        "count": 15,
-        "startQ": 15
+        "count": 18,
+        "startQ": 19
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 28,
-        "startQ": 30
+        "count": 32,
+        "startQ": 37
       }
     ],
     "keys": {
@@ -4139,20 +4065,20 @@
       {
         "id": "sec-1",
         "type": "NAT",
-        "count": 14,
+        "count": 20,
         "startQ": 1
       },
       {
         "id": "sec-2",
         "type": "MSQ",
-        "count": 15,
-        "startQ": 15
+        "count": 20,
+        "startQ": 21
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 28,
-        "startQ": 30
+        "count": 45,
+        "startQ": 41
       }
     ],
     "keys": null,
@@ -4275,20 +4201,20 @@
       {
         "id": "sec-1",
         "type": "NAT",
-        "count": 14,
+        "count": 20,
         "startQ": 1
       },
       {
         "id": "sec-2",
         "type": "MSQ",
-        "count": 15,
-        "startQ": 15
+        "count": 25,
+        "startQ": 21
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 28,
-        "startQ": 30
+        "count": 40,
+        "startQ": 46
       }
     ],
     "keys": null,
@@ -4413,20 +4339,20 @@
       {
         "id": "sec-1",
         "type": "NAT",
-        "count": 14,
+        "count": 20,
         "startQ": 1
       },
       {
         "id": "sec-2",
         "type": "MSQ",
-        "count": 15,
-        "startQ": 15
+        "count": 25,
+        "startQ": 21
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 28,
-        "startQ": 30
+        "count": 40,
+        "startQ": 46
       }
     ],
     "keys": null,
@@ -4551,20 +4477,20 @@
       {
         "id": "sec-1",
         "type": "NAT",
-        "count": 14,
+        "count": 20,
         "startQ": 1
       },
       {
         "id": "sec-2",
         "type": "MSQ",
-        "count": 15,
-        "startQ": 15
+        "count": 20,
+        "startQ": 21
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 28,
-        "startQ": 30
+        "count": 40,
+        "startQ": 41
       }
     ],
     "keys": null,
@@ -4683,20 +4609,20 @@
       {
         "id": "sec-1",
         "type": "NAT",
-        "count": 14,
+        "count": 20,
         "startQ": 1
       },
       {
         "id": "sec-2",
         "type": "MSQ",
-        "count": 15,
-        "startQ": 15
+        "count": 30,
+        "startQ": 21
       },
       {
         "id": "sec-3",
         "type": "MCQ",
-        "count": 28,
-        "startQ": 30
+        "count": 50,
+        "startQ": 51
       }
     ],
     "keys": null,

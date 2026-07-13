@@ -100,16 +100,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ papers, onSelectPaper }) =
     <div className="dashboard-screen">
       {/* Top bar */}
       <div className="dashboard-topbar">
-        <div className="dashboard-brand">
+        <h1 className="dashboard-brand" id="dashboard-brand-title">
           <span className="dashboard-brand-dot" />
           DesignPrep Canvas
-        </div>
+        </h1>
 
         <div className="dashboard-controls">
           <div className="filter-bar">
             {(['all', 'uceed', 'ceed'] as const).map((type) => (
               <button
                 key={type}
+                id={`filter-tab-${type}`}
                 onClick={() => setFilter(type)}
                 className={`filter-tab${filter === type ? ' active' : ''}`}
                 aria-label={`Show ${type} papers`}
@@ -123,6 +124,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ papers, onSelectPaper }) =
             <Search size={14} />
             <input
               type="text"
+              id="search-papers-input"
               placeholder="Search year or exam (e.g. uceed 2023)"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -150,6 +152,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ papers, onSelectPaper }) =
                 return (
                   <button
                     key={`inprogress-${paper.id}`}
+                    id={`inprogress-paper-card-${paper.id}`}
                     onClick={() => onSelectPaper(paper.id)}
                     className="paper-card in-progress"
                     style={{ borderLeft: '3px solid var(--accent)' }}
@@ -216,6 +219,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ papers, onSelectPaper }) =
                       return (
                         <button
                           key={paper.id}
+                          id={`paper-card-${paper.id}`}
                           onClick={() => onSelectPaper(paper.id)}
                           className="paper-card"
                         >
@@ -252,7 +256,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ papers, onSelectPaper }) =
               <FileWarning size={20} style={{ margin: '0 auto 10px', color: 'var(--muted)' }} />
               <h3>No matching papers</h3>
               <p style={{ color: 'var(--muted)', fontSize: '12px', margin: '4px 0 12px' }}>
-                We couldn't find any papers matching "{search}" under {filter === 'all' ? 'any exam' : filter.toUpperCase()}.
+                We couldn&apos;t find any papers matching &quot;{search}&quot; under {filter === 'all' ? 'any exam' : filter.toUpperCase()}.
               </p>
               <button onClick={clearFilters} className="sheet-reset-btn" style={{ width: 'auto', display: 'inline-flex', padding: '0 12px', height: '28px', gap: '4px' }}>
                 <RefreshCw size={10} />

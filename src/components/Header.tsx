@@ -1,9 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Edit3,
-  Trash2,
-  Undo2,
-  Redo2,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -16,8 +13,6 @@ import {
   Pause,
   RotateCcw,
   Settings2,
-  Pencil,
-  Eraser,
   Loader2
 } from 'lucide-react';
 
@@ -60,19 +55,11 @@ interface HeaderProps {
   setTimerDuration: (sec: number) => void;
   isTimerRunning: boolean;
   setIsTimerRunning: (running: boolean) => void;
-  isOmrCollapsed: boolean;
-  setIsOmrCollapsed: (collapsed: boolean) => void;
+  isOmrOpen: boolean;
+  setIsOmrOpen: (open: boolean) => void;
   isSaving: boolean;
   submitted: boolean;
 }
-
-const BRUSH_COLORS = [
-  { name: 'Pink', value: '#ff3366' },
-  { name: 'Violet', value: '#a855f7' },
-  { name: 'Green', value: '#00ff66' },
-  { name: 'Yellow', value: '#ffff00' },
-  { name: 'Blue', value: '#00ccff' }
-];
 
 export const Header: React.FC<HeaderProps> = ({
   papers,
@@ -83,15 +70,6 @@ export const Header: React.FC<HeaderProps> = ({
   numPages,
   drawMode,
   setDrawMode,
-  brushColor,
-  setBrushColor,
-  brushWidth,
-  setBrushWidth,
-  onUndo,
-  onRedo,
-  canUndo,
-  canRedo,
-  onClear,
   onReset,
   score,
   totalMarks,
@@ -107,19 +85,17 @@ export const Header: React.FC<HeaderProps> = ({
   setTimerDuration,
   isTimerRunning,
   setIsTimerRunning,
-  isOmrCollapsed,
-  setIsOmrCollapsed,
+  isOmrOpen,
+  setIsOmrOpen,
   isSaving,
   submitted
 }) => {
   const [showTimerSettings, setShowTimerSettings] = useState(false);
   const [showPaperDropdown, setShowPaperDropdown] = useState(false);
-  const [lastPencilColor, setLastPencilColor] = useState('#ff3366');
   const [customHours, setCustomHours] = useState(0);
   const [customMinutes, setCustomMinutes] = useState(30);
   const [customMode, setCustomMode] = useState(false);
   
-  const colorPickerRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const timerSettingsRef = useRef<HTMLDivElement>(null);
 
@@ -150,17 +126,6 @@ export const Header: React.FC<HeaderProps> = ({
 
   const handlePrevPage = () => { if (pageNumber > 1) setPageNumber(pageNumber - 1); };
   const handleNextPage = () => { if (pageNumber < numPages) setPageNumber(pageNumber + 1); };
-  const handleSelectPencil = () => setBrushColor(lastPencilColor);
-  
-  const handleSelectEraser = () => {
-    if (brushColor !== 'eraser') setLastPencilColor(brushColor);
-    setBrushColor('eraser');
-  };
-
-  const handleColorChange = (color: string) => {
-    setBrushColor(color);
-    setLastPencilColor(color);
-  };
 
   const handleTimerReset = () => {
     setIsTimerRunning(false);
@@ -180,6 +145,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button 
           onClick={() => setActivePaperId('')} 
           className="studio-btn" 
+          id="workspace-btn-back"
           title="Back to paper selector"
           aria-label="Back to papers selector dashboard"
         >
@@ -191,6 +157,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => setShowPaperDropdown(!showPaperDropdown)}
             className="studio-btn select-trigger"
+            id="workspace-btn-select-paper"
             aria-haspopup="listbox"
             aria-expanded={showPaperDropdown}
             aria-label="Select design paper"
@@ -203,26 +170,14 @@ export const Header: React.FC<HeaderProps> = ({
           {showPaperDropdown && (
             <div 
               className="custom-select-dropdown animate-fade-in"
+              id="workspace-paper-dropdown"
               role="listbox"
               aria-label="Select design paper option"
-              style={{
-                position: 'absolute',
-                top: '34px',
-                left: 0,
-                width: '180px',
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                zIndex: 100,
-                maxHeight: '280px',
-                overflowY: 'auto',
-                padding: '4px'
-              }}
             >
               {papers.map((paper) => (
                 <button
                   key={paper.id}
+                  id={`workspace-paper-option-${paper.id}`}
                   role="option"
                   aria-selected={paper.id === activePaperId}
                   onClick={() => {
@@ -230,19 +185,6 @@ export const Header: React.FC<HeaderProps> = ({
                     setShowPaperDropdown(false);
                   }}
                   className={`dropdown-option ${paper.id === activePaperId ? 'active' : ''}`}
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '8px 12px',
-                    border: 'none',
-                    background: paper.id === activePaperId ? 'var(--surface-muted)' : 'transparent',
-                    color: paper.id === activePaperId ? 'var(--text)' : 'var(--text-secondary)',
-                    fontSize: '12px',
-                    borderRadius: 'var(--radius-sm)',
-                    cursor: 'pointer',
-                    transition: 'background 0.15s ease'
-                  }}
                 >
                   {paper.exam} - {paper.year}
                 </button>
@@ -252,8 +194,8 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="v-divider" />
-        <div className="kicker" style={{ color: 'var(--muted)', fontSize: '11px', fontWeight: 500 }}>
-          {currentPaper?.exam} Studio
+        <div className="kicker" style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+          Practice Studio · {currentPaper?.exam} {currentPaper?.year}
         </div>
       </div>
 
@@ -263,6 +205,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={handlePrevPage} 
             disabled={pageNumber <= 1} 
             className="mini-icon" 
+            id="workspace-btn-prev-page"
             title="Previous page"
             aria-label="Previous page"
           >
@@ -273,6 +216,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={handleNextPage} 
             disabled={pageNumber >= numPages} 
             className="mini-icon" 
+            id="workspace-btn-next-page"
             title="Next page"
             aria-label="Next page"
           >
@@ -283,6 +227,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button 
           onClick={() => setDrawMode(!drawMode)} 
           className={`studio-btn ${drawMode ? 'active' : ''}`} 
+          id="workspace-btn-toggle-draw"
           title="Toggle annotation mode"
           aria-label="Toggle drawing annotations mode"
         >
@@ -290,102 +235,14 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
         
         <button 
-          onClick={() => setIsOmrCollapsed(!isOmrCollapsed)} 
-          className={`studio-btn ${isOmrCollapsed ? 'active' : ''}`} 
+          onClick={() => setIsOmrOpen(!isOmrOpen)} 
+          className={`studio-btn ${isOmrOpen ? 'active' : ''}`} 
+          id="workspace-btn-toggle-omr"
           title="Toggle response sheet panel"
           aria-label="Toggle response sheet answer panel"
         >
-          <FileText size={15} /> {isOmrCollapsed ? 'Show Sheet' : 'Hide Sheet'}
+          <FileText size={15} /> {isOmrOpen ? 'Hide Sheet' : 'Show Sheet'}
         </button>
-
-        {drawMode && (
-          <div className="draw-kit animate-fade-in">
-            <div className="tool-toggle">
-              <button 
-                onClick={handleSelectPencil} 
-                className={brushColor !== 'eraser' ? 'active' : ''} 
-                title="Pencil"
-                aria-label="Select drawing pencil tool"
-              >
-                <Pencil size={15} />
-              </button>
-              <button 
-                onClick={handleSelectEraser} 
-                className={brushColor === 'eraser' ? 'active' : ''} 
-                title="Eraser"
-                aria-label="Select eraser tool"
-              >
-                <Eraser size={15} />
-              </button>
-            </div>
-
-            {brushColor !== 'eraser' && (
-              <div className="swatch-row">
-                {BRUSH_COLORS.map((color) => (
-                  <button 
-                    key={color.name} 
-                    onClick={() => handleColorChange(color.value)} 
-                    className={`swatch ${brushColor === color.value ? 'active' : ''}`} 
-                    style={{ backgroundColor: color.value }} 
-                    title={color.name}
-                    aria-label={`Select pencil color ${color.name}`}
-                  />
-                ))}
-                <button 
-                  onClick={() => colorPickerRef.current?.click()} 
-                  className="swatch" 
-                  style={{ background: 'linear-gradient(135deg,#ff3366,#00ff66,#00ccff)' }} 
-                  title="Custom color"
-                  aria-label="Choose custom color"
-                />
-                <input 
-                  ref={colorPickerRef} 
-                  type="color" 
-                  hidden 
-                  value={BRUSH_COLORS.some(c => c.value === brushColor) ? brushColor : '#ffffff'} 
-                  onChange={(e) => handleColorChange(e.target.value)} 
-                />
-              </div>
-            )}
-
-            <input 
-              type="range" 
-              min="1" 
-              max="8" 
-              value={brushWidth} 
-              onChange={(e) => setBrushWidth(parseInt(e.target.value))} 
-              className="range" 
-              title={`Brush size: ${brushWidth}px`} 
-              aria-label={`Adjust pencil thickness, current size ${brushWidth} pixels`}
-            />
-            <button 
-              onClick={onUndo} 
-              disabled={!canUndo} 
-              className="mini-icon" 
-              title="Undo"
-              aria-label="Undo last brush stroke"
-            >
-              <Undo2 size={15} />
-            </button>
-            <button 
-              onClick={onRedo} 
-              disabled={!canRedo} 
-              className="mini-icon" 
-              title="Redo"
-              aria-label="Redo undone brush stroke"
-            >
-              <Redo2 size={15} />
-            </button>
-            <button 
-              onClick={onClear} 
-              className="mini-icon" 
-              title="Clear annotations"
-              aria-label="Wipe all drawings from current page"
-            >
-              <Trash2 size={15} />
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="toolbar-cluster right">
@@ -407,6 +264,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button 
             onClick={() => setIsTimerRunning(!isTimerRunning)} 
             className="mini-icon" 
+            id="workspace-btn-timer-toggle"
             title={isTimerRunning ? 'Pause timer' : 'Start timer'}
             aria-label={isTimerRunning ? 'Pause practice timer' : 'Start practice timer'}
           >
@@ -415,6 +273,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button 
             onClick={handleTimerReset} 
             className="mini-icon" 
+            id="workspace-btn-timer-reset"
             title="Reset timer"
             aria-label="Reset practice timer"
           >
@@ -426,6 +285,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button 
             onClick={() => setShowTimerSettings(!showTimerSettings)} 
             className="icon-btn" 
+            id="workspace-btn-timer-settings"
             title="Timer settings"
             aria-label="Configure timer and duration presets"
           >

@@ -16,6 +16,7 @@ export interface Stroke {
   points: Point[];
   color: string;
   width: number;
+  composite?: 'source-over' | 'multiply' | 'destination-out';
 }
 
 export interface UserSessionState {

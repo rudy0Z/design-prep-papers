@@ -43,7 +43,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       if (stroke.color === 'eraser') {
         ctx.globalCompositeOperation = 'destination-out';
       } else {
-        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalCompositeOperation = stroke.composite || 'source-over';
         ctx.strokeStyle = stroke.color;
       }
       ctx.lineWidth = stroke.width;
@@ -71,7 +71,8 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       drawStroke({
         points: currentStrokePoints,
         color: brushColor,
-        width: brushWidth
+        width: brushWidth,
+        composite: brushColor === 'eraser' ? 'destination-out' : (brushColor.startsWith('rgba') ? 'multiply' : 'source-over')
       });
     }
   }, [strokes, currentStrokePoints, isDrawing, width, height, brushColor, brushWidth]);
@@ -121,7 +122,8 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       const newStroke: Stroke = {
         points: currentStrokePoints,
         color: brushColor,
-        width: brushWidth
+        width: brushWidth,
+        composite: brushColor === 'eraser' ? 'destination-out' : (brushColor.startsWith('rgba') ? 'multiply' : 'source-over')
       };
       setStrokes([...strokes, newStroke]);
     }

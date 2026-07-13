@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Play, Pause, X, Check, Award, AlertCircle, Clock, LayoutGrid, FileText, RotateCcw, Flag } from 'lucide-react';
-import { QuestionSection, evaluateNat, evaluateMcq, evaluateMsq, calculateScore } from '../utils/scoring';
+import { X, Check, Award, AlertCircle, LayoutGrid, FileText, RotateCcw, Flag, Play, Pause } from 'lucide-react';
+import { QuestionSection, evaluateNat, evaluateMcq, evaluateMsq, calculateScore, AnswerKeyMap, AnswerKeyValue } from '../utils/scoring';
 
 interface OmrSheetProps {
   sections: QuestionSection[];
@@ -10,7 +10,7 @@ interface OmrSheetProps {
   setAnswer: (qid: string, val: string | string[]) => void;
   verifiedSections: string[];
   toggleVerifySection: (secId: string) => void;
-  keys: { [sectionType: string]: { [questionId: string]: any } } | null;
+  keys: AnswerKeyMap | null;
   examType: 'CEED' | 'UCEED';
   questionTimes: { [questionId: string]: number };
   activeQuestionId: string | null;
@@ -29,6 +29,8 @@ interface OmrSheetProps {
   onResetSession: () => void;
   flaggedQuestions: string[];
   onToggleFlag: (qid: string) => void;
+  isOmrOpen: boolean;
+  setIsOmrOpen: (open: boolean) => void;
 }
 
 const fmtTime = (s: number) => {
@@ -45,7 +47,6 @@ const getRecommendedTime = (type: 'NAT' | 'MSQ' | 'MCQ') => {
 
 export const OmrSheet: React.FC<OmrSheetProps> = ({
   sections, answers, setAnswer,
-  verifiedSections, toggleVerifySection,
   keys, examType,
   questionTimes, activeQuestionId, setActiveQuestionId,
   trackingMode, setTrackingMode,
@@ -54,18 +55,17 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
   omrMode, setOmrMode,
   pageNumber, pageQuestions,
   onResetSession,
-  flaggedQuestions, onToggleFlag
+  flaggedQuestions, onToggleFlag,
+  isOmrOpen, setIsOmrOpen
 }) => {
   const [activeTab, setActiveTab] = useState<string>(sections[0]?.id ?? '');
-  const [revealKeys, setRevealKeys] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
-
-  const isPartB = activeTab === 'part-b';
   const activeSection = sections.find(s => s.id === activeTab) ?? sections[0];
 
   useEffect(() => {
     if (submitted) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowReport(true);
     }
   }, [submitted]);
@@ -113,12 +113,12 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
     return evaluateMcq(ans, key, examType).isCorrect;
   };
 
-  const verifyMsq = (qid: string, key: any): boolean | null => {
+  const verifyMsq = (qid: string, key: AnswerKeyValue): boolean | null => {
     const opts = (answers[qid] as string[]) ?? [];
     if (!opts.length) return null;
 
     if (Array.isArray(key) && Array.isArray(key[0])) {
-      return key.some((k: string[]) => evaluateMsq(opts, k).isCorrect);
+      return (key as string[][]).some((k: string[]) => evaluateMsq(opts, k).isCorrect);
     } else if (Array.isArray(key)) {
       return evaluateMsq(opts, key as string[]).isCorrect;
     }
@@ -130,15 +130,68 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
 
   const activePageQs = pageQuestions?.[String(pageNumber)] ?? [];
 
+  if (sections.length === 0) {
+    return (
+      <div className={`omr-sheet ${omrMode === 'page' ? 'sheet-docked' : 'sheet-full'} ${isOmrOpen ? 'open' : 'collapsed'}`}>
+        <button
+          onClick={() => setIsOmrOpen(!isOmrOpen)}
+          className={`omr-drawer-handle ${isOmrOpen ? 'open' : 'closed'}`}
+          id="omr-drawer-toggle-handle"
+          title={isOmrOpen ? 'Hide response sheet' : 'Show response sheet'}
+          aria-label="Toggle response sheet drawer"
+        >
+          <FileText size={14} />
+        </button>
+
+        <div className="sheet-header">
+          <h2 id="omr-sheet-title">Response Sheet</h2>
+        </div>
+        
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '40px 24px',
+          textAlign: 'center',
+          height: '75%',
+          color: 'var(--text-secondary)'
+        }}>
+          <AlertCircle size={32} style={{ marginBottom: 16, color: 'var(--muted)' }} />
+          <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>
+            No Objective Section
+          </h3>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5, maxWidth: '280px' }}>
+            This year&apos;s exam did not have a computer-based or objective section (MCQ/MSQ/NAT). The paper consists entirely of subjective drawing and design questions.
+          </p>
+          <span style={{ fontSize: '11px', color: 'var(--muted-2)', marginTop: 12, fontStyle: 'italic' }}>
+            Please use the canvas annotation tools directly on the question paper to draft your work.
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`omr-sheet ${omrMode === 'page' ? 'sheet-docked' : 'sheet-full'}`}>
-      
+    <div className={`omr-sheet ${omrMode === 'page' ? 'sheet-docked' : 'sheet-full'} ${isOmrOpen ? 'open' : 'collapsed'}`}>
+      {/* Drawer Toggle Handle */}
+      <button
+        onClick={() => setIsOmrOpen(!isOmrOpen)}
+        className={`omr-drawer-handle ${isOmrOpen ? 'open' : 'closed'}`}
+        id="omr-drawer-toggle-handle"
+        title={isOmrOpen ? 'Hide response sheet' : 'Show response sheet'}
+        aria-label="Toggle response sheet drawer"
+      >
+        <FileText size={14} />
+      </button>
+
       {/* Title & View Switcher */}
       <div className="sheet-header">
-        <h3>Response Sheet</h3>
+        <h2 id="omr-sheet-title">Response Sheet</h2>
         <div className="view-toggle-segmented">
           <button 
             onClick={() => setOmrMode('page')}
+            id="omr-btn-toggle-page"
             className={omrMode === 'page' ? 'active' : ''}
             title="Show questions on current page"
           >
@@ -147,6 +200,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
           </button>
           <button 
             onClick={() => setOmrMode('full')}
+            id="omr-btn-toggle-full"
             className={omrMode === 'full' ? 'active' : ''}
             title="Show full sheet grid"
           >
@@ -156,16 +210,36 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
         </div>
       </div>
 
+      <div className="sheet-settings-bar">
+        <div className="tracking-control-unified" id="omr-tracking-control">
+          <span>Auto-Track Time</span>
+          <div className="tracking-buttons-group">
+            {(['auto', 'manual', 'off'] as const).map(m => (
+              <button
+                key={m}
+                id={`omr-tracking-btn-${m}`}
+                onClick={() => setTrackingMode(m)}
+                className={`tracking-btn ${trackingMode === m ? 'active' : ''}`}
+                title={m === 'auto' ? 'Track time spent based on focused question' : m === 'manual' ? 'Click play/pause next to each question manually' : 'Turn off question-level timing'}
+              >
+                {m === 'auto' ? 'Auto' : m === 'manual' ? 'Manual' : 'Off'}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {omrMode === 'full' ? (
         <>
           {/* Section tabs */}
-          <div className="omr-tabs">
+          <div className="omr-tabs" id="omr-section-tabs">
             {sections.map(sec => {
               const attempted = getAttempted(sec);
               const pct = sec.count > 0 ? (attempted / sec.count) * 100 : 0;
               return (
                 <button
                   key={sec.id}
+                  id={`omr-tab-${sec.id}`}
                   onClick={() => setActiveTab(sec.id)}
                   className={`omr-tab${activeTab === sec.id ? ' active' : ''}`}
                 >
@@ -177,24 +251,11 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                 </button>
               );
             })}
-            <button
-              onClick={() => setActiveTab('part-b')}
-              className={`omr-tab${activeTab === 'part-b' ? ' active' : ''}`}
-            >
-              <strong>Part B</strong>
-              <span>Sketch</span>
-              <div className="tab-indicator"><i style={{ width: 0 }} /></div>
-            </button>
           </div>
 
           {/* Content area */}
           <div className="omr-content">
-            {isPartB ? (
-              <div className="partb-card animate-fade-in">
-                <h3>Part B — Design Section</h3>
-                <p>Part B requires manual sketching and layout presentation. Use the annotation tools on the PDF canvas to overlay notes or sketch concepts directly on the paper pages.</p>
-              </div>
-            ) : activeSection ? (
+            {activeSection ? (
               <div className="animate-fade-in">
                 <div className="section-head">
                   <span className="section-desc mono">
@@ -202,19 +263,9 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                     {activeSection.type === 'MCQ' && 'Multiple Choice — single correct'}
                     {activeSection.type === 'MSQ' && 'Multiple Select — one or more correct'}
                   </span>
-                  <div className="tracking-control">
-                    <span>Track</span>
-                    {(['auto', 'manual', 'off'] as const).map(m => (
-                      <button
-                        key={m}
-                        onClick={() => setTrackingMode(m)}
-                        className={trackingMode === m ? 'active' : ''}
-                      >{m}</button>
-                    ))}
-                  </div>
                 </div>
 
-                <div className="question-list">
+                <div className="question-list" id="omr-question-list">
                   {Array.from({ length: activeSection.count }).map((_, i) => {
                     const qid = String(activeSection.startQ + i);
                     const isActive = trackingMode === 'auto' && activeQuestionId === qid;
@@ -225,8 +276,8 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
 
                     let correct: boolean | null = null;
                     if (submitted && correctKey) {
-                      if (activeSection.type === 'NAT') correct = verifyNat(qid, correctKey);
-                      else if (activeSection.type === 'MCQ') correct = verifyMcq(qid, correctKey);
+                      if (activeSection.type === 'NAT') correct = verifyNat(qid, correctKey as string);
+                      else if (activeSection.type === 'MCQ') correct = verifyMcq(qid, correctKey as string);
                       else correct = verifyMsq(qid, correctKey);
                     }
 
@@ -234,12 +285,14 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                     return (
                       <div
                         key={qid}
+                        id={`omr-question-row-${qid}`}
                         className={`question-row ${isActive ? 'active' : ''} ${submitted ? 'locked' : ''} ${isFlagged ? 'flagged' : ''}`}
                         onClick={() => { if (trackingMode === 'auto') setActiveQuestionId(qid); }}
                       >
                         <div className="q-label mono flex items-center gap-1">
                           <button
                             onClick={(e) => { e.stopPropagation(); onToggleFlag(qid); }}
+                            id={`omr-flag-btn-${qid}`}
                             className={`flag-action-btn ${isFlagged ? 'flagged' : ''}`}
                             title={isFlagged ? 'Flagged for review' : 'Flag for review'}
                             aria-label={isFlagged ? `Question ${qid} flagged. Tap to unflag.` : `Flag question ${qid} for review`}
@@ -255,6 +308,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                             <>
                               <input
                                 type="text"
+                                id={`omr-input-nat-${qid}`}
                                 value={(answers[qid] as string) ?? ''}
                                 onChange={e => handleNat(qid, e.target.value)}
                                 placeholder="—"
@@ -277,15 +331,17 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                                     : answers[qid] === opt;
                                   const isCorrectOpt = submitted && correctKey && (
                                     activeSection.type === 'MSQ'
-                                      ? (Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? correctKey.flat() : correctKey) : [correctKey]).map((x: string) => x.toUpperCase()).includes(opt.toUpperCase())
-                                      : correctKey.toUpperCase() === opt.toUpperCase()
+                                      ? (Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? (correctKey as string[][]).flat() : (correctKey as string[])) : [correctKey as string]).map((x: string) => String(x).toUpperCase()).includes(opt.toUpperCase())
+                                      : String(correctKey).toUpperCase() === opt.toUpperCase()
                                   );
                                   return (
                                     <button
                                       key={opt}
+                                      id={`omr-btn-choice-${qid}-${opt}`}
                                       disabled={submitted}
-                                      onClick={e => { e.stopPropagation(); activeSection.type === 'MSQ' ? handleMsq(qid, opt) : handleMcq(qid, opt); }}
+                                      onClick={e => { e.stopPropagation(); if (activeSection.type === 'MSQ') { handleMsq(qid, opt); } else { handleMcq(qid, opt); } }}
                                       className={`choice-btn ${selected ? (submitted ? (isCorrectOpt ? 'correct' : 'wrong') : 'selected') : (submitted && isCorrectOpt ? 'correct' : '')}`}
+                                      aria-label={activeSection.type === 'MSQ' ? `Option ${opt} for Question ${qid} (multiple select)` : `Option ${opt} for Question ${qid}`}
                                     >
                                       {opt}
                                     </button>
@@ -296,7 +352,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                                 <div className={`verify-note result-${correct ? 'ok' : 'bad'}`}>
                                   {correct 
                                     ? '✓ Correct' 
-                                    : `✗ Key: ${Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? correctKey.map((k: string[]) => k.join('+')).join('/') : (correctKey as string[]).join('+')) : correctKey}`
+                                    : `✗ Key: ${Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? (correctKey as string[][]).map((k: string[]) => k.join('+')).join('/') : (correctKey as string[]).join('+')) : correctKey}`
                                   }
                                 </div>
                               )}
@@ -338,8 +394,10 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
             {activePageQs.length === 0 ? (
               <div className="dock-empty-card">
                 <AlertCircle size={15} style={{ marginBottom: 6, color: 'var(--muted)' }} />
-                <p>No questions mapped on Page {pageNumber}.</p>
-                <span className="text-[10px] color-[var(--muted-2)]">This is likely a instructions, cover, or Part B sketching page.</span>
+                <p>No response entries required for Page {pageNumber}.</p>
+                <span className="text-[10px] color-[var(--muted-2)]" style={{ display: 'block', padding: '0 8px', lineHeight: 1.4 }}>
+                  This page contains cover details, general instructions, or Part B drawing prompts that are solved directly on physical paper.
+                </span>
               </div>
             ) : (
               activePageQs.map(qNum => {
@@ -355,8 +413,8 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
 
                 let correct: boolean | null = null;
                 if (submitted && correctKey) {
-                  if (sec.type === 'NAT') correct = verifyNat(qid, correctKey);
-                  else if (sec.type === 'MCQ') correct = verifyMcq(qid, correctKey);
+                  if (sec.type === 'NAT') correct = verifyNat(qid, correctKey as string);
+                  else if (sec.type === 'MCQ') correct = verifyMcq(qid, correctKey as string);
                   else correct = verifyMsq(qid, correctKey);
                 }
 
@@ -364,6 +422,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                 return (
                   <div 
                     key={qid}
+                    id={`omr-dock-card-q-${qid}`}
                     className={`dock-question-card ${isActive ? 'active' : ''} ${submitted ? 'locked' : ''} ${isFlagged ? 'flagged' : ''}`}
                     onClick={() => { if (trackingMode === 'auto') setActiveQuestionId(qid); }}
                   >
@@ -371,6 +430,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                       <span className="mono font-semibold text-xs flex items-center gap-1">
                         <button
                           onClick={(e) => { e.stopPropagation(); onToggleFlag(qid); }}
+                          id={`omr-dock-flag-btn-${qid}`}
                           className={`flag-action-btn ${isFlagged ? 'flagged' : ''}`}
                           title={isFlagged ? 'Flagged for review' : 'Flag for review'}
                           aria-label={isFlagged ? `Question ${qid} flagged. Tap to unflag.` : `Flag question ${qid} for review`}
@@ -394,6 +454,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                         <div className="flex flex-col gap-2 w-full">
                           <input
                             type="text"
+                            id={`omr-dock-input-nat-${qid}`}
                             value={(answers[qid] as string) ?? ''}
                             onChange={e => handleNat(qid, e.target.value)}
                             placeholder="Type value..."
@@ -416,15 +477,17 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                                 : answers[qid] === opt;
                               const isCorrectOpt = submitted && correctKey && (
                                 sec.type === 'MSQ'
-                                  ? (Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? correctKey.flat() : correctKey) : [correctKey]).map((x: string) => x.toUpperCase()).includes(opt.toUpperCase())
-                                  : correctKey.toUpperCase() === opt.toUpperCase()
+                                  ? (Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? (correctKey as string[][]).flat() : (correctKey as string[])) : [correctKey as string]).map((x: string) => String(x).toUpperCase()).includes(opt.toUpperCase())
+                                  : String(correctKey).toUpperCase() === opt.toUpperCase()
                               );
                               return (
                                 <button
                                   key={opt}
+                                  id={`omr-dock-btn-choice-${qid}-${opt}`}
                                   disabled={submitted}
-                                  onClick={e => { e.stopPropagation(); sec.type === 'MSQ' ? handleMsq(qid, opt) : handleMcq(qid, opt); }}
+                                  onClick={e => { e.stopPropagation(); if (sec.type === 'MSQ') { handleMsq(qid, opt); } else { handleMcq(qid, opt); } }}
                                   className={`choice-btn ${selected ? (submitted ? (isCorrectOpt ? 'correct' : 'wrong') : 'selected') : (submitted && isCorrectOpt ? 'correct' : '')}`}
+                                  aria-label={sec.type === 'MSQ' ? `Option ${opt} for Question ${qid} (multiple choice)` : `Option ${opt} for Question ${qid}`}
                                 >
                                   {opt}
                                 </button>
@@ -435,7 +498,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                             <span className={`verify-note text-[10px] result-${correct ? 'ok' : 'bad'}`}>
                               {correct 
                                 ? '✓ Correct' 
-                                : `✗ Key: ${Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? correctKey.map((k: string[]) => k.join('+')).join('/') : (correctKey as string[]).join('+')) : correctKey}`
+                                : `✗ Key: ${Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? (correctKey as string[][]).map((k: string[]) => k.join('+')).join('/') : (correctKey as string[]).join('+')) : correctKey}`
                               }
                             </span>
                           )}
@@ -455,6 +518,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
         {!submitted ? (
           <button 
             onClick={() => setShowConfirmSubmit(true)}
+            id="omr-btn-check-answers"
             className="submit-practice-btn"
             aria-label="Grade response sheet and check answers"
           >
@@ -465,6 +529,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
           <div className="flex flex-col gap-2 w-full">
             <button 
               onClick={() => setShowReport(true)}
+              id="omr-btn-show-report"
               className="submit-practice-btn check-answers-active"
             >
               <Award size={14} />
@@ -472,6 +537,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
             </button>
             <button 
               onClick={onResetSession}
+              id="omr-btn-reset"
               className="sheet-reset-btn"
             >
               <RotateCcw size={12} />
@@ -522,8 +588,8 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                         const qid = String(sec.startQ + i);
                         const correctKey = secKeys[qid];
                         if (correctKey && answers[qid]) {
-                          if (sec.type === 'NAT' && verifyNat(qid, correctKey) === true) correctCount++;
-                          else if (sec.type === 'MCQ' && verifyMcq(qid, correctKey) === true) correctCount++;
+                          if (sec.type === 'NAT' && verifyNat(qid, correctKey as string) === true) correctCount++;
+                          else if (sec.type === 'MCQ' && verifyMcq(qid, correctKey as string) === true) correctCount++;
                           else if (sec.type === 'MSQ' && verifyMsq(qid, correctKey) === true) correctCount++;
                         }
                       }
@@ -553,13 +619,13 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                       if (!key || !answers[qid]) continue;
                       
                       if (sec.type === 'NAT') {
-                        if (verifyNat(qid, key) === true) secScore += 4;
+                        if (verifyNat(qid, key as string) === true) secScore += 4;
                       } else if (sec.type === 'MCQ') {
-                        const res = evaluateMcq(answers[qid] as string, key, examType);
+                        const res = evaluateMcq(answers[qid] as string, key as string, examType);
                         secScore += res.marks;
                         if (res.isCorrect) secCorrect++;
                       } else if (sec.type === 'MSQ') {
-                        const res = evaluateMsq(answers[qid] as string[], key);
+                        const res = evaluateMsq(answers[qid] as string[], key as string[]);
                         secScore += res.marks;
                         if (res.isCorrect) secCorrect++;
                       }
@@ -611,8 +677,8 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                         
                         let correct: boolean | null = null;
                         if (key) {
-                          if (sec.type === 'NAT') correct = verifyNat(qid, key);
-                          else if (sec.type === 'MCQ') correct = verifyMcq(qid, key);
+                          if (sec.type === 'NAT') correct = verifyNat(qid, key as string);
+                          else if (sec.type === 'MCQ') correct = verifyMcq(qid, key as string);
                           else correct = verifyMsq(qid, key);
                         }
 
@@ -620,7 +686,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                           ? (Array.isArray(userAns) ? userAns.join('+') : String(userAns)) 
                           : '—';
                         const keyStr = key 
-                          ? (Array.isArray(key) ? (Array.isArray(key[0]) ? key.map((k: string[]) => k.join('+')).join(' / ') : (key as string[]).join('+')) : String(key))
+                          ? (Array.isArray(key) ? (Array.isArray(key[0]) ? (key as string[][]).map((k: string[]) => k.join('+')).join(' / ') : (key as string[]).join('+')) : String(key))
                           : '—';
 
                         const timeDiff = recTime - timeVal;
@@ -662,9 +728,9 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
       {showConfirmSubmit && (
         <div className="report-modal-overlay animate-fade-in" style={{ zIndex: 110 }}>
           <div className="report-modal-card animate-zoom-in" style={{ maxWidth: '400px', padding: '20px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)', margin: '0 0 8px' }}>Grade Practice Sheet?</h3>
+            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)', margin: '0 0 8px' }}>Submit & Grade Answer Sheet?</h3>
             <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 16px', lineHeight: 1.5 }}>
-              This will lock all inputs to prevent further changes, check your selections against the official answer keys, and open your performance analytics report.
+              Ready to grade your work? This will finalize your responses, lock all inputs to prevent further changes, evaluate your choices against the official key, and compile your performance analytics report.
             </p>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button 
