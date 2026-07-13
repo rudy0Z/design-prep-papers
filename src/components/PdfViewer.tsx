@@ -7,6 +7,12 @@ import { DrawingCanvas } from './DrawingCanvas';
 import { Stroke, storage } from '../utils/storage';
 import { FileWarning } from 'lucide-react';
 
+let pdfjsPromise: Promise<typeof import('pdfjs-dist')> | null = null;
+function getPdfjs() {
+  if (!pdfjsPromise) pdfjsPromise = import('pdfjs-dist');
+  return pdfjsPromise;
+}
+
 interface PdfViewerProps {
   pdfUrl: string;
   pageNumber: number;
@@ -40,6 +46,21 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   // Dimensions
   const [containerWidth, setContainerWidth] = useState<number>(0);
   const [zoomScale, setZoomScale] = useState<number>(1.0);
+
+  // Restore saved zoom level for this paper
+  useEffect(() => {
+    if (activePaperId) {
+      const saved = localStorage.getItem(`zoom_${activePaperId}`);
+      if (saved) setZoomScale(parseFloat(saved));
+    }
+  }, [activePaperId]);
+
+  // Persist zoom level when it changes
+  useEffect(() => {
+    if (activePaperId) {
+      localStorage.setItem(`zoom_${activePaperId}`, String(zoomScale));
+    }
+  }, [zoomScale, activePaperId]);
 
   // Pre-loaded page aspect ratios: pageNum -> ratio (width/height)
   const [pageAspectRatios, setPageAspectRatios] = useState<Record<number, number>>({});
@@ -158,7 +179,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
 
     (async () => {
       try {
-        const pdfjs = await import('pdfjs-dist');
+        const pdfjs = await getPdfjs();
         pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
         if (isCancelled) return;

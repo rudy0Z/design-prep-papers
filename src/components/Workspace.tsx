@@ -10,6 +10,24 @@ import { Dashboard } from './Dashboard';
 import { storage, Stroke } from '../utils/storage';
 import { AnswerKeyMap, calculateScore, QuestionSection } from '../utils/scoring';
 
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+  } catch {
+    // Audio not available
+  }
+}
+
 interface PaperData {
   id: string;
   exam: string;
@@ -46,6 +64,9 @@ export const Workspace: React.FC = () => {
   const [lastHighlighterWidth, setLastHighlighterWidth] = useState<number>(12);
   
   const colorPickerRef = useRef<HTMLInputElement | null>(null);
+  const answerSaveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const activePaperIdRef = useRef(activePaperId);
+  activePaperIdRef.current = activePaperId;
   const [timerMode, setTimerMode] = useState<'stopwatch' | 'timer'>('stopwatch');
   const [timerDuration, setTimerDuration] = useState<number>(10800);
   const [timerRemaining, setTimerRemaining] = useState<number>(10800);
@@ -156,6 +177,7 @@ export const Workspace: React.FC = () => {
   useEffect(() => {
     if (timerMode === 'timer' && timerRemaining <= 0 && isTimerRunning) {
       setIsTimerRunning(false);
+      playBeep();
     }
   }, [timerRemaining, timerMode, isTimerRunning]);
 
@@ -242,9 +264,13 @@ export const Workspace: React.FC = () => {
   const handleAnswerChange = (qid: string, val: string | string[]) => {
     const updated = { ...answers, [qid]: val };
     setAnswers(updated);
+    clearTimeout(answerSaveTimer.current);
     if (activePaperId) {
       setIsSaving(true);
-      storage.saveAnswers(activePaperId, updated).then(() => setIsSaving(false));
+      answerSaveTimer.current = setTimeout(() => {
+        const pid = activePaperIdRef.current;
+        if (pid) storage.saveAnswers(pid, updated).then(() => setIsSaving(false));
+      }, 400);
     }
   };
 
@@ -422,9 +448,9 @@ export const Workspace: React.FC = () => {
           handleClear();
         } else if (key === 'o' || key === 's') {
           setIsOmrOpen(prev => !prev);
-        } else if (key === '[') {
+        } else if (key === '[' || e.key === 'ArrowLeft') {
           if (pageNumber > 1) handlePageChange(pageNumber - 1);
-        } else if (key === ']') {
+        } else if (key === ']' || e.key === 'ArrowRight') {
           if (pageNumber < numPages) handlePageChange(pageNumber + 1);
         } else if (key === 'escape') {
           setIsOmrOpen(false);

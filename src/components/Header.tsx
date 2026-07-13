@@ -252,7 +252,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Timer pill with color states (pulse green vs amber) and screen reader role */}
         <div 
-          className={`timer-pill ${isTimerRunning ? 'timer-running' : 'timer-paused'}`} 
+          className={`timer-pill ${isTimerRunning ? 'timer-running' : 'timer-paused'} ${timerMode === 'timer' && timerRemaining > 0 && timerRemaining < 300 ? 'timer-warning' : ''}`}
           style={{ position: 'relative' }}
           role="timer"
           aria-live="polite"

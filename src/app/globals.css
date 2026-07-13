@@ -1539,6 +1539,14 @@ button:active { opacity: 0.8; }
 .timer-pill.timer-paused strong {
   color: var(--warning) !important;
 }
+.timer-pill.timer-warning {
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
+  animation: timer-warning-pulse 1s ease-in-out infinite;
+}
+.timer-pill.timer-warning strong {
+  color: var(--danger) !important;
+}
 
 /* ─── Drawer Toggle Handle ────────────────────────────────────────── */
 .omr-drawer-handle {
@@ -1682,6 +1690,10 @@ button:active { opacity: 0.8; }
 @keyframes pulse-badge {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
+}
+@keyframes timer-warning-pulse {
+  0%, 100% { box-shadow: 0 0 4px var(--danger-dim); }
+  50% { box-shadow: 0 0 16px var(--danger); }
 }
 .live-badge-dot {
   display: inline-block;
