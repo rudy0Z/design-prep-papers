@@ -72,10 +72,7 @@ export const Workspace: React.FC = () => {
   const [timerRemaining, setTimerRemaining] = useState<number>(10800);
   const [timerElapsed, setTimerElapsed] = useState<number>(0);
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
-  const [questionTimes, setQuestionTimes] = useState<{ [questionId: string]: number }>({});
-  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
-  const [trackingMode, setTrackingMode] = useState<'auto' | 'manual' | 'off'>('auto');
-  const [manualRunningQid, setManualRunningQid] = useState<string | null>(null);
+
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isLoadingManifest, setIsLoadingManifest] = useState<boolean>(true);
   const [submitted, setSubmitted] = useState<boolean>(false);
@@ -125,16 +122,14 @@ export const Workspace: React.FC = () => {
       storage.getPageNumber(activePaperId),
       storage.getAnswers(activePaperId),
       storage.getVerifiedSections(activePaperId),
-      storage.getQuestionTimes(activePaperId),
       storage.getSubmitted(activePaperId),
       storage.getFlaggedQuestions(activePaperId)
-    ]).then(([savedPage, savedAnswers, savedVerified, savedTimes, savedSubmitted, savedFlagged]) => {
+    ]).then(([savedPage, savedAnswers, savedVerified, savedSubmitted, savedFlagged]) => {
       if (!isCurrent) return;
 
       setPageNumber(savedPage);
       setAnswers(savedAnswers);
       setVerifiedSections(savedVerified);
-      setQuestionTimes(savedTimes);
       setSubmitted(savedSubmitted);
       setFlaggedQuestions(savedFlagged);
 
@@ -149,9 +144,6 @@ export const Workspace: React.FC = () => {
       setTimerElapsed(savedElapsed);
       setTimerDuration(savedDuration);
       setIsTimerRunning(savedRunning);
-      setTrackingMode((localStorage.getItem('tracking_mode') as 'auto' | 'manual' | 'off') || 'auto');
-      setActiveQuestionId(null);
-      setManualRunningQid(null);
       setRedoStrokes([]);
       setIsOmrOpen(false);
     });
@@ -194,44 +186,10 @@ export const Workspace: React.FC = () => {
         setTimerElapsed((prev) => prev + 1);
       }
 
-      if (trackingMode === 'auto' && activeQuestionId) {
-        setQuestionTimes((prev) => ({
-          ...prev,
-          [activeQuestionId]: (prev[activeQuestionId] || 0) + 1
-        }));
-      } else if (trackingMode === 'manual' && manualRunningQid) {
-        setQuestionTimes((prev) => ({
-          ...prev,
-          [manualRunningQid]: (prev[manualRunningQid] || 0) + 1
-        }));
-      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isTimerRunning, timerMode, trackingMode, activeQuestionId, manualRunningQid, activePaperId]);
-
-  // Debounced/Throttled writes to IndexedDB for question times to prevent disk thrashing
-  useEffect(() => {
-    if (!activePaperId || Object.keys(questionTimes).length === 0) return;
-    const handler = setTimeout(() => {
-      storage.saveQuestionTimes(activePaperId, questionTimes);
-    }, 4000);
-    return () => clearTimeout(handler);
-  }, [questionTimes, activePaperId]);
-
-  // Save question times on tab close/unmount
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (activePaperId && Object.keys(questionTimes).length > 0) {
-        storage.saveQuestionTimes(activePaperId, questionTimes);
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      handleBeforeUnload();
-    };
-  }, [activePaperId, questionTimes]);
+  }, [isTimerRunning, timerMode, activePaperId]);
 
   // Debounced/Throttled writes to localStorage for timer state
   useEffect(() => {
@@ -294,26 +252,7 @@ export const Workspace: React.FC = () => {
     }
   }, [activePaperId, pageNumber, strokes]);
 
-  // Auto-focus active question based on pageNumber and unanswered questions
-  useEffect(() => {
-    if (!currentPaper || trackingMode !== 'auto' || activeQuestionId) return;
 
-    const pageQs = currentPaper.pageQuestions?.[String(pageNumber)];
-    if (!pageQs || pageQs.length === 0) return;
-
-    // Find the first question on the page that doesn't have an answer yet
-    const firstUnanswered = pageQs.find((qId: number) => {
-      const qidStr = String(qId);
-      return !answers[qidStr] || answers[qidStr] === '' || (Array.isArray(answers[qidStr]) && (answers[qidStr] as string[]).length === 0);
-    });
-
-    if (firstUnanswered) {
-      setActiveQuestionId(String(firstUnanswered));
-    } else {
-      // If all are answered, focus the first question on the page
-      setActiveQuestionId(String(pageQs[0]));
-    }
-  }, [pageNumber, answers, trackingMode, activeQuestionId, currentPaper]);
 
   const toggleFlagQuestion = (qid: string) => {
     const updated = flaggedQuestions.includes(qid)
@@ -457,21 +396,6 @@ export const Workspace: React.FC = () => {
         } else if (key === 'escape') {
           setIsOmrOpen(false);
           setConfirmModal(null);
-        } else if (activeQuestionId && (key === '1' || key === '2' || key === '3' || key === '4')) {
-          e.preventDefault();
-          const opt = key === '1' ? 'A' : key === '2' ? 'B' : key === '3' ? 'C' : 'D';
-          const qNum = parseInt(activeQuestionId);
-          const sec = currentPaper?.sections.find(s => qNum >= s.startQ && qNum < s.startQ + s.count);
-          if (sec && !submitted) {
-            if (sec.type === 'MSQ') {
-              const val = answers[activeQuestionId];
-              const arr = Array.isArray(val) ? (val as string[]) : [];
-              const newVal = arr.includes(opt) ? arr.filter(o => o !== opt) : [...arr, opt];
-              handleAnswerChange(activeQuestionId, newVal);
-            } else if (sec.type === 'MCQ') {
-              handleAnswerChange(activeQuestionId, opt);
-            }
-          }
         }
       }
     };
@@ -487,9 +411,7 @@ export const Workspace: React.FC = () => {
     handlePageChange,
     pageNumber,
     numPages,
-    activeQuestionId,
     answers,
-    handleAnswerChange,
     currentPaper,
     submitted
   ]);
@@ -506,7 +428,6 @@ export const Workspace: React.FC = () => {
         setVerifiedSections([]);
         setStrokes([]);
         setRedoStrokes([]);
-        setQuestionTimes({});
         setSubmitted(false);
         setFlaggedQuestions([]);
         setTimerElapsed(0);
@@ -526,13 +447,6 @@ export const Workspace: React.FC = () => {
   const handleTimerElapsedChange = (sec: number) => { setTimerElapsed(sec); localStorage.setItem(`timer_elapsed_${activePaperId}`, String(sec)); };
   const handleTimerDurationChange = (sec: number) => { setTimerDuration(sec); localStorage.setItem(`timer_duration_${activePaperId}`, String(sec)); };
   const handleIsTimerRunningChange = (running: boolean) => { setIsTimerRunning(running); localStorage.setItem(`timer_running_${activePaperId}`, String(running)); };
-  const handleTrackingModeChange = (mode: 'auto' | 'manual' | 'off') => {
-    setTrackingMode(mode);
-    localStorage.setItem('tracking_mode', mode);
-    if (mode !== 'auto') setActiveQuestionId(null);
-    if (mode !== 'manual') setManualRunningQid(null);
-  };
-
   const { score, totalMarks, totalAnswered, totalQuestions } = currentPaper
     ? calculateScore(answers, currentPaper.sections, currentPaper.keys, currentPaper.exam as 'CEED' | 'UCEED')
     : { score: null, totalMarks: 0, totalAnswered: 0, totalQuestions: 0 };
@@ -831,13 +745,6 @@ export const Workspace: React.FC = () => {
               toggleVerifySection={toggleVerifySection}
               keys={currentPaper.keys}
               examType={currentPaper.exam as 'CEED' | 'UCEED'}
-              questionTimes={questionTimes}
-              activeQuestionId={activeQuestionId}
-              setActiveQuestionId={setActiveQuestionId}
-              trackingMode={trackingMode}
-              setTrackingMode={handleTrackingModeChange}
-              manualRunningQid={manualRunningQid}
-              setManualRunningQid={setManualRunningQid}
               submitted={submitted}
               setSubmitted={handleSetSubmitted}
               omrMode={omrMode}

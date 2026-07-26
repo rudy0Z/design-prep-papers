@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Check, Award, AlertCircle, LayoutGrid, FileText, RotateCcw, Flag, Play, Pause } from 'lucide-react';
+import { X, Check, Award, AlertCircle, LayoutGrid, FileText, RotateCcw, Flag } from 'lucide-react';
 import { QuestionSection, evaluateNat, evaluateMcq, evaluateMsq, calculateScore, AnswerKeyMap, AnswerKeyValue } from '../utils/scoring';
 
 interface OmrSheetProps {
@@ -12,13 +12,6 @@ interface OmrSheetProps {
   toggleVerifySection: (secId: string) => void;
   keys: AnswerKeyMap | null;
   examType: 'CEED' | 'UCEED';
-  questionTimes: { [questionId: string]: number };
-  activeQuestionId: string | null;
-  setActiveQuestionId: (qid: string | null) => void;
-  trackingMode: 'auto' | 'manual' | 'off';
-  setTrackingMode: (mode: 'auto' | 'manual' | 'off') => void;
-  manualRunningQid: string | null;
-  setManualRunningQid: (qid: string | null) => void;
   // New props
   submitted: boolean;
   setSubmitted: (val: boolean) => void;
@@ -33,24 +26,9 @@ interface OmrSheetProps {
   setIsOmrOpen: (open: boolean) => void;
 }
 
-const fmtTime = (s: number) => {
-  if (!s) return '0:00';
-  const m = Math.floor(s / 60), sec = s % 60;
-  return `${m}:${sec.toString().padStart(2, '0')}`;
-};
-
-const getRecommendedTime = (type: 'NAT' | 'MSQ' | 'MCQ') => {
-  if (type === 'NAT') return 210; // 3.5 minutes
-  if (type === 'MSQ') return 210; // 3.5 minutes
-  return 120; // 2.0 minutes
-};
-
 export const OmrSheet: React.FC<OmrSheetProps> = ({
   sections, answers, setAnswer,
   keys, examType,
-  questionTimes, activeQuestionId, setActiveQuestionId,
-  trackingMode, setTrackingMode,
-  manualRunningQid, setManualRunningQid,
   submitted, setSubmitted,
   omrMode, setOmrMode,
   pageNumber, pageQuestions,
@@ -224,44 +202,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
         </div>
       </div>
 
-      <div className="sheet-settings-bar">
-        <div className="tracking-control-unified" id="omr-tracking-control">
-          <div className="tracking-label-row">
-            <span>Auto-Track Time</span>
-            {trackingMode === 'auto' && activeQuestionId && (
-              <span className="tracking-now-badge mono">
-                <span className="tracking-pulse-dot" />
-                Tracking Q.{activeQuestionId}
-              </span>
-            )}
-            {trackingMode === 'manual' && manualRunningQid && (
-              <span className="tracking-now-badge mono">
-                <span className="tracking-pulse-dot" />
-                Timing Q.{manualRunningQid}
-              </span>
-            )}
-            {trackingMode === 'auto' && !activeQuestionId && (
-              <span className="tracking-idle-label mono">Click a question to track</span>
-            )}
-            {trackingMode === 'manual' && !manualRunningQid && (
-              <span className="tracking-idle-label mono">Tap play on any question</span>
-            )}
-          </div>
-          <div className="tracking-buttons-group">
-            {(['auto', 'manual', 'off'] as const).map(m => (
-              <button
-                key={m}
-                id={`omr-tracking-btn-${m}`}
-                onClick={() => setTrackingMode(m)}
-                className={`tracking-btn ${trackingMode === m ? 'active' : ''}`}
-                title={m === 'auto' ? 'Track time spent based on focused question' : m === 'manual' ? 'Click play/pause next to each question manually' : 'Turn off question-level timing'}
-              >
-                {m === 'auto' ? 'Auto' : m === 'manual' ? 'Manual' : 'Off'}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+
 
       {omrMode === 'full' ? (
         <>
@@ -302,11 +243,8 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                 <div className="question-list" id="omr-question-list">
                   {Array.from({ length: activeSection.count }).map((_, i) => {
                     const qid = String(activeSection.startQ + i);
-                    const isActive = trackingMode === 'auto' && activeQuestionId === qid;
-                    const isManualRunning = trackingMode === 'manual' && manualRunningQid === qid;
                     const hasKey = keys && keys[activeSection.type]?.[qid];
                     const correctKey = hasKey ? keys![activeSection.type][qid] : null;
-                    const timeVal = questionTimes[qid] ?? 0;
 
                     let correct: boolean | null = null;
                     const hasAns = answers[qid] !== undefined && answers[qid] !== '' && !(Array.isArray(answers[qid]) && answers[qid].length === 0);
@@ -321,8 +259,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                       <div
                         key={qid}
                         id={`omr-question-row-${qid}`}
-                        className={`question-row ${isActive ? 'active' : ''} ${submitted ? 'locked' : ''} ${isFlagged ? 'flagged' : ''}`}
-                        onClick={() => { if (trackingMode === 'auto') setActiveQuestionId(qid); }}
+                        className={`question-row ${submitted ? 'locked' : ''} ${isFlagged ? 'flagged' : ''}`}
                       >
                         <div className="q-label mono flex items-center gap-1">
                           <button
@@ -369,13 +306,17 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                                       ? (Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? (correctKey as string[][]).flat() : (correctKey as string[])) : [correctKey as string]).map((x: string) => String(x).toUpperCase()).includes(opt.toUpperCase())
                                       : String(correctKey).toUpperCase() === opt.toUpperCase()
                                   );
+                                  // Only apply result highlighting when user has answered
+                                  const resultClass = showResults && hasAns ? (
+                                    selected ? (isCorrectOpt ? 'correct' : 'wrong') : (isCorrectOpt ? 'correct' : '')
+                                  ) : selected ? 'selected' : '';
                                   return (
                                     <button
                                       key={opt}
                                       id={`omr-btn-choice-${qid}-${opt}`}
                                       disabled={submitted}
                                       onClick={e => { e.stopPropagation(); if (activeSection.type === 'MSQ') { handleMsq(qid, opt); } else { handleMcq(qid, opt); } }}
-                                      className={`choice-btn ${selected ? (showResults ? (isCorrectOpt ? 'correct' : 'wrong') : 'selected') : (showResults && isCorrectOpt ? 'correct' : '')}`}
+                                      className={`choice-btn ${resultClass}`}
                                       aria-label={activeSection.type === 'MSQ' ? `Option ${opt} for Question ${qid} (multiple select)` : `Option ${opt} for Question ${qid}`}
                                     >
                                       {opt}
@@ -394,27 +335,6 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                             </>
                           )}
                         </div>
-
-                        {trackingMode !== 'off' && (
-                          <div className="q-time-col">
-                            <div className="q-time-row">
-                              {(isActive || isManualRunning) && (
-                                <span className="live-badge mono">LIVE</span>
-                              )}
-                              <span className={`q-time mono ${isActive || isManualRunning ? 'live' : ''}`}>
-                                {fmtTime(timeVal)}
-                              </span>
-                            </div>
-                            {trackingMode === 'manual' && !submitted && (
-                              <button
-                                className="manual-timer-btn"
-                                onClick={e => { e.stopPropagation(); setManualRunningQid(isManualRunning ? null : qid); }}
-                              >
-                                {isManualRunning ? <Pause size={10} /> : <Play size={10} />}
-                              </button>
-                            )}
-                          </div>
-                        )}
                       </div>
                     );
                   })}
@@ -445,11 +365,8 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                 const sec = getQuestionSection(qNum);
                 if (!sec) return null;
 
-                const isActive = trackingMode === 'auto' && activeQuestionId === qid;
-                const isManualRunning = trackingMode === 'manual' && manualRunningQid === qid;
                 const hasKey = keys && keys[sec.type]?.[qid];
                 const correctKey = hasKey ? keys![sec.type][qid] : null;
-                const timeVal = questionTimes[qid] ?? 0;
 
                 let correct: boolean | null = null;
                 const hasAns = answers[qid] !== undefined && answers[qid] !== '' && !(Array.isArray(answers[qid]) && answers[qid].length === 0);
@@ -464,8 +381,7 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                   <div 
                     key={qid}
                     id={`omr-dock-card-q-${qid}`}
-                    className={`dock-question-card ${isActive ? 'active' : ''} ${submitted ? 'locked' : ''} ${isFlagged ? 'flagged' : ''}`}
-                    onClick={() => { if (trackingMode === 'auto') setActiveQuestionId(qid); }}
+                    className={`dock-question-card ${submitted ? 'locked' : ''} ${isFlagged ? 'flagged' : ''}`}
                   >
                     <div className="dock-card-header">
                       <span className="mono font-semibold text-xs flex items-center gap-1">
@@ -482,13 +398,6 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                         <span>Q.{qid}</span>
                         <span className="text-[10px] font-normal text-muted-2">({sec.type})</span>
                       </span>
-                      
-                      {trackingMode !== 'off' && (
-                        <span className={`dock-q-time mono ${isActive || isManualRunning ? 'live' : ''}`}>
-                          {(isActive || isManualRunning) && <span className="live-badge-dot" />}
-                          {fmtTime(timeVal)}
-                        </span>
-                      )}
                     </div>
 
                     <div className="dock-card-body">
@@ -522,13 +431,16 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                                   ? (Array.isArray(correctKey) ? (Array.isArray(correctKey[0]) ? (correctKey as string[][]).flat() : (correctKey as string[])) : [correctKey as string]).map((x: string) => String(x).toUpperCase()).includes(opt.toUpperCase())
                                   : String(correctKey).toUpperCase() === opt.toUpperCase()
                               );
+                              const resultClass = showResults && hasAns ? (
+                                selected ? (isCorrectOpt ? 'correct' : 'wrong') : (isCorrectOpt ? 'correct' : '')
+                              ) : selected ? 'selected' : '';
                               return (
                                 <button
                                   key={opt}
                                   id={`omr-dock-btn-choice-${qid}-${opt}`}
                                   disabled={submitted}
                                   onClick={e => { e.stopPropagation(); if (sec.type === 'MSQ') { handleMsq(qid, opt); } else { handleMcq(qid, opt); } }}
-                                  className={`choice-btn ${selected ? (showResults ? (isCorrectOpt ? 'correct' : 'wrong') : 'selected') : (showResults && isCorrectOpt ? 'correct' : '')}`}
+                                  className={`choice-btn ${resultClass}`}
                                   aria-label={sec.type === 'MSQ' ? `Option ${opt} for Question ${qid} (multiple choice)` : `Option ${opt} for Question ${qid}`}
                                 >
                                   {opt}
@@ -718,9 +630,6 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                       <th>Type</th>
                       <th>Answer</th>
                       <th>Correct Key</th>
-                      <th>Time</th>
-                      <th>Rec. Time</th>
-                      <th>Efficiency</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -731,8 +640,6 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                         const qid = String(qNum);
                         const userAns = answers[qid];
                         const key = secKeys[qid];
-                        const timeVal = questionTimes[qid] ?? 0;
-                        const recTime = getRecommendedTime(sec.type);
                         
                         let correct: boolean | null = null;
                         if (key) {
@@ -748,12 +655,6 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                           ? (Array.isArray(key) ? (Array.isArray(key[0]) ? (key as string[][]).map((k: string[]) => k.join('+')).join(' / ') : (key as string[]).join('+')) : String(key))
                           : '—';
 
-                        const timeDiff = recTime - timeVal;
-                        const efficiencyClass = timeDiff >= 0 ? 'eff-good' : 'eff-bad';
-                        const efficiencyLabel = timeDiff >= 0 
-                          ? `-${fmtTime(timeDiff)} ahead` 
-                          : `+${fmtTime(Math.abs(timeDiff))} over`;
-
                         const isFlagged = flaggedQuestions.includes(qid);
                         return (
                           <tr key={qid} className={`${correct === true ? 'row-correct' : correct === false ? 'row-wrong' : 'row-unanswered'} ${isFlagged ? 'row-flagged' : ''}`}>
@@ -764,9 +665,6 @@ export const OmrSheet: React.FC<OmrSheetProps> = ({
                             <td>{sec.type}</td>
                             <td className="mono text-xs">{ansStr}</td>
                             <td className="mono text-xs">{keyStr}</td>
-                            <td className="mono">{fmtTime(timeVal)}</td>
-                            <td className="mono text-muted-2">{fmtTime(recTime)}</td>
-                            <td className={`mono text-xs ${efficiencyClass}`}>{efficiencyLabel}</td>
                           </tr>
                         );
                       });

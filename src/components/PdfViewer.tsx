@@ -42,16 +42,24 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   const [pdfDoc, setPdfDoc] = useState<PDFDocumentProxy | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string>('');
+  const [loadKey, setLoadKey] = useState(0);
   
   // Dimensions
   const [containerWidth, setContainerWidth] = useState<number>(0);
   const [zoomScale, setZoomScale] = useState<number>(1.0);
+  const zoomScaleRef = useRef<number>(1.0);
+  zoomScaleRef.current = zoomScale;
 
   // Restore saved zoom level for this paper
   useEffect(() => {
     if (activePaperId) {
       const saved = localStorage.getItem(`zoom_${activePaperId}`);
-      if (saved) setZoomScale(parseFloat(saved));
+      if (saved) {
+        const parsed = parseFloat(saved);
+        setZoomScale(isNaN(parsed) || parsed <= 0 ? 1.0 : Math.max(0.4, Math.min(parsed, 3.0)));
+      } else {
+        setZoomScale(1.0);
+      }
     }
   }, [activePaperId]);
 
@@ -70,22 +78,32 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   const isAutoScrollingRef = useRef(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pageChangeSourceRef = useRef<'ui' | 'scroll'>('ui');
+  const scrollRafRef = useRef<number | null>(null);
 
   // Listen to wheel events on container for pinch-to-zoom and ctrl+scroll zoom
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const handleWheel = (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        e.preventDefault();
-        const delta = -e.deltaY * 0.003;
-        setZoomScale((prev) => {
-          const next = prev + delta;
-          return Math.max(0.4, Math.min(next, 3.0));
-        });
-      }
-    };
+     const handleWheel = (e: WheelEvent) => {
+       if (e.ctrlKey) {
+         e.preventDefault();
+         const oldZoom = zoomScaleRef.current;
+         const delta = -e.deltaY * 0.003;
+         const next = Math.max(0.4, Math.min(oldZoom + delta, 3.0));
+         if (next === oldZoom) return;
+
+         const container = containerRef.current;
+         if (container) {
+           const rect = container.getBoundingClientRect();
+           const focusY = e.clientY - rect.top;
+           const ratio = next / oldZoom;
+           container.scrollTop = Math.max(0, focusY - ratio * (focusY - container.scrollTop));
+         }
+
+         setZoomScale(next);
+       }
+     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });
     return () => container.removeEventListener('wheel', handleWheel);
@@ -98,6 +116,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
 
     let startDistance = 0;
     let startZoom = 1.0;
+    let lastPinchZoom = 1.0;
 
     const getDistance = (touches: TouchList) => {
       if (touches.length < 2) return 0;
@@ -110,7 +129,8 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
       if (e.touches.length === 2) {
         e.preventDefault();
         startDistance = getDistance(e.touches);
-        startZoom = zoomScale;
+        startZoom = zoomScaleRef.current;
+        lastPinchZoom = zoomScaleRef.current;
       }
     };
 
@@ -118,11 +138,19 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
       if (e.touches.length === 2 && startDistance > 0) {
         e.preventDefault();
         const currentDistance = getDistance(e.touches);
-        const ratio = currentDistance / Math.max(1, startDistance);
-        setZoomScale(() => {
-          const next = startZoom * ratio;
-          return Math.max(0.4, Math.min(next, 3.0));
-        });
+        const pinchRatio = currentDistance / Math.max(1, startDistance);
+        const next = Math.max(0.4, Math.min(startZoom * pinchRatio, 3.0));
+        if (next === lastPinchZoom) return;
+
+        const container = containerRef.current;
+        if (container) {
+          const rect = container.getBoundingClientRect();
+          const focusY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+          container.scrollTop = Math.max(0, focusY - (next / lastPinchZoom) * (focusY - container.scrollTop));
+        }
+
+        lastPinchZoom = next;
+        setZoomScale(next);
       }
     };
 
@@ -160,6 +188,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   useEffect(() => {
     isAutoScrollingRef.current = false;
     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    if (scrollRafRef.current) cancelAnimationFrame(scrollRafRef.current);
     const container = containerRef.current;
     if (container) {
       container.scrollTop = 0;
@@ -244,7 +273,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
       isCancelled = true;
       controller.abort();
     };
-  }, [pdfUrl, setNumPages]);
+  }, [pdfUrl, setNumPages, loadKey]);
 
   // Fetched PDFs will resolve dimensions per page inside child components.
 
@@ -303,7 +332,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
       scrollTimeoutRef.current = setTimeout(() => {
         isAutoScrollingRef.current = false;
-      }, 600);
+      }, 1200);
     }, 300);
 
     return () => clearTimeout(t);
@@ -312,40 +341,45 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   // Scroll-to-Page sync: When user scrolls, detect which page is dominant and update pageNumber
   const handleScroll = () => {
     if (isLoading || !pdfDoc || !ratiosReady || isAutoScrollingRef.current) return;
-    const container = containerRef.current;
-    if (!container) return;
+    if (scrollRafRef.current) return;
+    scrollRafRef.current = requestAnimationFrame(() => {
+      scrollRafRef.current = null;
+      const container = containerRef.current;
+      if (!container) return;
 
-    const children = container.querySelectorAll('.pdf-page-wrapper');
-    if (children.length === 0) return;
+      const children = container.querySelectorAll('.pdf-page-wrapper');
+      if (children.length === 0) return;
 
-    let minDistance = Infinity;
-    let closestPageNum = pageNumber;
-    const containerCenter = container.getBoundingClientRect().top + container.clientHeight / 2;
+      let minDistance = Infinity;
+      let closestPageNum = pageNumber;
+      const containerCenter = container.getBoundingClientRect().top + container.clientHeight / 2;
 
-    children.forEach((child) => {
-      const rect = child.getBoundingClientRect();
-      const childCenter = rect.top + rect.height / 2;
-      const distance = Math.abs(childCenter - containerCenter);
-      
-      if (distance < minDistance) {
-        minDistance = distance;
-        const pNumAttr = child.getAttribute('data-page-number');
-        if (pNumAttr) {
-          closestPageNum = parseInt(pNumAttr);
+      children.forEach((child) => {
+        const rect = child.getBoundingClientRect();
+        const childCenter = rect.top + rect.height / 2;
+        const distance = Math.abs(childCenter - containerCenter);
+        
+        if (distance < minDistance) {
+          minDistance = distance;
+          const pNumAttr = child.getAttribute('data-page-number');
+          if (pNumAttr) {
+            closestPageNum = parseInt(pNumAttr);
+          }
         }
+      });
+
+      if (closestPageNum !== pageNumber) {
+        pageChangeSourceRef.current = 'scroll';
+        setPageNumber(closestPageNum);
       }
     });
-
-    if (closestPageNum !== pageNumber) {
-      pageChangeSourceRef.current = 'scroll';
-      setPageNumber(closestPageNum);
-    }
   };
 
-  // Clean timeout on unmount
+  // Clean timeouts on unmount
   useEffect(() => {
     return () => {
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      if (scrollRafRef.current) cancelAnimationFrame(scrollRafRef.current);
     };
   }, []);
 
@@ -404,6 +438,16 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
               <div style={{ marginBottom: 12, color: 'var(--muted)' }}><FileWarning size={24} /></div>
               <h3>Question paper unavailable</h3>
               <p>{loadError || 'Select a paper with a valid PDF file to open the reading canvas.'}</p>
+              {loadError && (
+                <button
+                  onClick={() => { setLoadKey(k => k + 1); }}
+                  className="studio-btn"
+                  style={{ marginTop: 12 }}
+                  aria-label="Retry loading PDF"
+                >
+                  Retry
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -434,35 +478,64 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
       )}
 
       {/* Floating Zoom Widget */}
-      {pdfDoc && (
-        <div className="zoom-widget animate-fade-in" style={{ right: '20px' }}>
-          <button 
-            onClick={() => setZoomScale(prev => Math.max(0.4, prev - 0.1))}
-            title="Zoom Out"
-            className="zoom-btn"
-            aria-label="Zoom Out"
-          >
-            -
-          </button>
-          <span className="zoom-text mono">{Math.round(zoomScale * 100)}%</span>
-          <button 
-            onClick={() => setZoomScale(prev => Math.min(3.0, prev + 0.1))}
-            title="Zoom In"
-            className="zoom-btn"
-            aria-label="Zoom In"
-          >
-            +
-          </button>
-          <button 
-            onClick={() => setZoomScale(1.0)}
-            title="Reset Zoom"
-            className="zoom-reset-btn"
-            aria-label="Reset zoom level to default"
-          >
-            Reset
-          </button>
-        </div>
-      )}
+       {pdfDoc && (
+         <div className="zoom-widget animate-fade-in" style={{ right: '20px' }} role="group" aria-label="Zoom controls">
+            <button 
+              onClick={() => {
+                const oldZoom = zoomScale;
+                const next = Math.max(0.4, oldZoom - 0.1);
+                if (next === oldZoom) return;
+                const container = containerRef.current;
+                if (container) {
+                  const focusY = container.clientHeight / 2;
+                  container.scrollTop = Math.max(0, focusY - (next / oldZoom) * (focusY - container.scrollTop));
+                }
+                setZoomScale(next);
+              }}
+              title="Zoom Out"
+              className="zoom-btn"
+              aria-label="Zoom Out"
+            >
+              -
+            </button>
+            <span className="zoom-text mono" role="status" aria-live="polite" aria-valuenow={Math.round(zoomScale * 100)} aria-valuemin={40} aria-valuemax={300}>{Math.round(zoomScale * 100)}%</span>
+            <button 
+              onClick={() => {
+                const oldZoom = zoomScale;
+                const next = Math.min(3.0, oldZoom + 0.1);
+                if (next === oldZoom) return;
+                const container = containerRef.current;
+                if (container) {
+                  const focusY = container.clientHeight / 2;
+                  container.scrollTop = Math.max(0, focusY - (next / oldZoom) * (focusY - container.scrollTop));
+                }
+                setZoomScale(next);
+              }}
+              title="Zoom In"
+              className="zoom-btn"
+              aria-label="Zoom In"
+            >
+              +
+            </button>
+            <button 
+              onClick={() => {
+                const oldZoom = zoomScale;
+                if (oldZoom === 1.0) return;
+                const container = containerRef.current;
+                if (container) {
+                  const focusY = container.clientHeight / 2;
+                  container.scrollTop = Math.max(0, focusY - (1.0 / oldZoom) * (focusY - container.scrollTop));
+                }
+                setZoomScale(1.0);
+              }}
+              title="Reset Zoom"
+              className="zoom-reset-btn"
+              aria-label="Reset zoom level to default"
+            >
+              Reset
+            </button>
+         </div>
+       )}
     </div>
   );
 };
@@ -527,7 +600,7 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedWidth(width);
-    }, 180);
+    }, 80);
 
     return () => clearTimeout(handler);
   }, [width]);
@@ -546,7 +619,7 @@ const PdfPageItem: React.FC<PdfPageItemProps> = ({
       },
       {
         root: scrollContainer || null,
-        rootMargin: '600px', // start loading 600px before coming in viewport
+        rootMargin: '400px',
         threshold: 0.01
       }
     );
