@@ -93,6 +93,10 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
          const next = Math.max(0.4, Math.min(oldZoom + delta, 3.0));
          if (next === oldZoom) return;
 
+         // Lock scroll sync to prevent handleScroll fighting zoom
+         isAutoScrollingRef.current = true;
+         if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+
          const container = containerRef.current;
          if (container) {
            const rect = container.getBoundingClientRect();
@@ -102,6 +106,10 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
          }
 
          setZoomScale(next);
+
+         scrollTimeoutRef.current = setTimeout(() => {
+           isAutoScrollingRef.current = false;
+         }, 300);
        }
      };
 
@@ -142,6 +150,9 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
         const next = Math.max(0.4, Math.min(startZoom * pinchRatio, 3.0));
         if (next === lastPinchZoom) return;
 
+        // Lock scroll sync to prevent handleScroll fighting zoom
+        isAutoScrollingRef.current = true;
+
         const container = containerRef.current;
         if (container) {
           const rect = container.getBoundingClientRect();
@@ -151,6 +162,11 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
 
         lastPinchZoom = next;
         setZoomScale(next);
+
+        if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+        scrollTimeoutRef.current = setTimeout(() => {
+          isAutoScrollingRef.current = false;
+        }, 300);
       }
     };
 
