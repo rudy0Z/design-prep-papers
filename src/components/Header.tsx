@@ -17,6 +17,7 @@ import {
   Settings2,
   Loader2
 } from 'lucide-react';
+import { AppLogo } from './AppLogo';
 
 interface PaperInfo {
   id: string;
@@ -162,8 +163,10 @@ export const Header: React.FC<HeaderProps> = ({
           id="workspace-btn-back"
           title="Back to paper selector"
           aria-label="Back to papers selector dashboard"
+          style={{ gap: '7px' }}
         >
-          <ChevronLeft size={15} /> Home
+          <AppLogo size={18} />
+          <span>Home</span>
         </button>
 
         {/* Custom Paper Switching Popover */}

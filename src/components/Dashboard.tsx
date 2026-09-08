@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { storage } from '../utils/storage';
 import { QuestionSection } from '../utils/scoring';
+import { AppLogo } from './AppLogo';
 
 export interface PaperInfo {
   id: string;
@@ -226,8 +227,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Top Header */}
       <div className="dashboard-topbar">
         <h1 className="dashboard-brand" id="dashboard-brand-title">
-          <span className="dashboard-brand-dot" />
-          DesignPrep Studio &amp; Library
+          <AppLogo size={28} />
+          <span>DesignPrep Studio &amp; Library</span>
         </h1>
 
         {/* Global Main Category Switcher */}

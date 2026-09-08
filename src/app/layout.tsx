@@ -19,8 +19,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DesignPrep Canvas - CEED / UCEED Study Studio",
-  description: "A focused split-screen studio for CEED and UCEED practice with question papers, OMR entry, annotation tools, timers, and local progress tracking.",
+  metadataBase: new URL("https://designprep-canvas.vercel.app"),
+  title: "DesignPrep Canvas — CEED / UCEED / NID / NIFT Study Studio",
+  description: "Official design entrance papers, verified detailed solutions, interactive OMR, drawing canvas, and 32 masterclass design books.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
+  openGraph: {
+    title: "DesignPrep Canvas — CEED / UCEED / NID / NIFT Study Studio",
+    description: "Official design entrance papers, verified detailed solutions, interactive OMR, drawing canvas, and 32 masterclass design books.",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "DesignPrep Canvas Studio and Library",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DesignPrep Canvas — CEED / UCEED / NID / NIFT Study Studio",
+    description: "Official design entrance papers, verified detailed solutions, interactive OMR, drawing canvas, and 32 masterclass design books.",
+    images: ["/twitter-image.png"],
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
