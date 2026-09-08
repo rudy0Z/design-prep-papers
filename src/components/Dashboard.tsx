@@ -607,8 +607,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {mainTab === 'books' && (
           <div className="dashboard-section animate-fade-in">
             {/* Control Bar */}
-            <div className="dashboard-subbar">
-              <div className="filter-bar flex-wrap">
+            <div className="dashboard-subbar books-subbar">
+              <div className="filter-bar filter-bar-wrap">
                 {bookCategories.map((cat) => (
                   <button
                     key={cat}
@@ -627,6 +627,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   placeholder="Search books by title, author, or keyword..."
                   value={bookSearch}
                   onChange={(e) => setBookSearch(e.target.value)}
+                  aria-label="Search books"
                 />
               </div>
             </div>
@@ -653,7 +654,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         loading="lazy"
                         className="book-cover-img"
                       />
-                      <span className="book-category-chip">{book.category}</span>
+                      <span className="book-category-tag">{book.category}</span>
                     </div>
 
                     {/* Content */}
