@@ -1,0 +1,452 @@
+[
+  {
+    "id": "nid-nid-2022-bdes",
+    "exam": "NID",
+    "year": 2022,
+    "program": "B.Des",
+    "title": "NID B.Des 2022 (with Answer Key)",
+    "pdfPath": "/data/nid/nid-2022-bdes.pdf",
+    "sizeMb": 1.2,
+    "pages": 24
+  },
+  {
+    "id": "nid-nid-2016-bdes",
+    "exam": "NID",
+    "year": 2016,
+    "program": "B.Des",
+    "title": "NID DAT B.Des 2016 Original Paper",
+    "pdfPath": "/data/nid/nid-2016-bdes.pdf",
+    "sizeMb": 1.2,
+    "pages": 28
+  },
+  {
+    "id": "nid-nid-2016-mdes",
+    "exam": "NID",
+    "year": 2016,
+    "program": "M.Des",
+    "title": "NID M.Des 2016 Question Paper",
+    "pdfPath": "/data/nid/nid-2016-mdes.pdf",
+    "sizeMb": 1.3,
+    "pages": 26
+  },
+  {
+    "id": "nid-nid-2017-mdes",
+    "exam": "NID",
+    "year": 2017,
+    "program": "M.Des",
+    "title": "NID M.Des 2017 (with Answer Key)",
+    "pdfPath": "/data/nid/nid-2017-mdes.pdf",
+    "sizeMb": 5.6,
+    "pages": 23
+  },
+  {
+    "id": "nid-nid-2018-mdes",
+    "exam": "NID",
+    "year": 2018,
+    "program": "M.Des",
+    "title": "NID DAT M.Des 2018 (with Answer Key)",
+    "pdfPath": "/data/nid/nid-2018-mdes.pdf",
+    "sizeMb": 2.2,
+    "pages": 21
+  },
+  {
+    "id": "nid-nid-2018-bdes",
+    "exam": "NID",
+    "year": 2018,
+    "program": "B.Des",
+    "title": "NID DAT Prelims B.Des 2018 (with Answer Key)",
+    "pdfPath": "/data/nid/nid-2018-bdes.pdf",
+    "sizeMb": 0.9,
+    "pages": 25
+  },
+  {
+    "id": "nid-nid-2019-bdes",
+    "exam": "NID",
+    "year": 2019,
+    "program": "B.Des",
+    "title": "NID DAT Prelims B.Des 2019 (with Answer Key)",
+    "pdfPath": "/data/nid/nid-2019-bdes.pdf",
+    "sizeMb": 1.4,
+    "pages": 19
+  },
+  {
+    "id": "nid-nid-2019-mdes",
+    "exam": "NID",
+    "year": 2019,
+    "program": "M.Des",
+    "title": "NID DAT Prelims M.Des 2019 Question Paper",
+    "pdfPath": "/data/nid/nid-2019-mdes.pdf",
+    "sizeMb": 4.0,
+    "pages": 76
+  },
+  {
+    "id": "nid-nid-2020-bdes",
+    "exam": "NID",
+    "year": 2020,
+    "program": "B.Des",
+    "title": "NID B.Des 2020 Original Paper (with Answer Key)",
+    "pdfPath": "/data/nid/nid-2020-bdes.pdf",
+    "sizeMb": 7.6,
+    "pages": 27
+  },
+  {
+    "id": "nift-nift-2012-bdes-cat",
+    "exam": "NIFT",
+    "year": 2012,
+    "program": "B.Des (CAT)",
+    "title": "NIFT B.Des 2012 CAT Question Paper",
+    "pdfPath": "/data/nift/nift-2012-bdes-cat.pdf",
+    "sizeMb": 0.8,
+    "pages": 5
+  },
+  {
+    "id": "nift-nift-2013-bdes-cat",
+    "exam": "NIFT",
+    "year": 2013,
+    "program": "B.Des (CAT)",
+    "title": "NIFT B.Des 2013 CAT Question Paper",
+    "pdfPath": "/data/nift/nift-2013-bdes-cat.pdf",
+    "sizeMb": 1.1,
+    "pages": 6
+  },
+  {
+    "id": "nift-nift-2013-bdes-gat",
+    "exam": "NIFT",
+    "year": 2013,
+    "program": "B.Des (GAT)",
+    "title": "NIFT B.Des 2013 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2013-bdes-gat.pdf",
+    "sizeMb": 6.3,
+    "pages": 16
+  },
+  {
+    "id": "nift-nift-2015-bdes-cat",
+    "exam": "NIFT",
+    "year": 2015,
+    "program": "B.Des (CAT)",
+    "title": "NIFT B.Des 2015 CAT Question Paper",
+    "pdfPath": "/data/nift/nift-2015-bdes-cat.pdf",
+    "sizeMb": 1.0,
+    "pages": 6
+  },
+  {
+    "id": "nift-nift-2015-bdes-gat",
+    "exam": "NIFT",
+    "year": 2015,
+    "program": "B.Des (GAT)",
+    "title": "NIFT B.Des 2015 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2015-bdes-gat.pdf",
+    "sizeMb": 7.3,
+    "pages": 17
+  },
+  {
+    "id": "nift-nift-2022-bdes-gat",
+    "exam": "NIFT",
+    "year": 2022,
+    "program": "B.Des (GAT)",
+    "title": "NIFT B.Des 2022 GAT (with Answer Key)",
+    "pdfPath": "/data/nift/nift-2022-bdes-gat.pdf",
+    "sizeMb": 0.4,
+    "pages": 27
+  },
+  {
+    "id": "nift-nift-2012-bftech-gat",
+    "exam": "NIFT",
+    "year": 2012,
+    "program": "B.F.Tech",
+    "title": "NIFT B.F.Tech 2012 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2012-bftech-gat.pdf",
+    "sizeMb": 9.1,
+    "pages": 18
+  },
+  {
+    "id": "nift-nift-2013-bftech-gat",
+    "exam": "NIFT",
+    "year": 2013,
+    "program": "B.F.Tech",
+    "title": "NIFT B.F.Tech 2013 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2013-bftech-gat.pdf",
+    "sizeMb": 8.4,
+    "pages": 20
+  },
+  {
+    "id": "nift-nift-2014-bftech-gat",
+    "exam": "NIFT",
+    "year": 2014,
+    "program": "B.F.Tech",
+    "title": "NIFT B.F.Tech 2014 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2014-bftech-gat.pdf",
+    "sizeMb": 8.8,
+    "pages": 19
+  },
+  {
+    "id": "nift-nift-2012-mdes-cat",
+    "exam": "NIFT",
+    "year": 2012,
+    "program": "M.Des (CAT)",
+    "title": "NIFT M.Des 2012 CAT Question Paper",
+    "pdfPath": "/data/nift/nift-2012-mdes-cat.pdf",
+    "sizeMb": 1.2,
+    "pages": 6
+  },
+  {
+    "id": "nift-nift-2012-mdes-gat",
+    "exam": "NIFT",
+    "year": 2012,
+    "program": "M.Des (GAT)",
+    "title": "NIFT M.Des 2012 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2012-mdes-gat.pdf",
+    "sizeMb": 9.0,
+    "pages": 18
+  },
+  {
+    "id": "nift-nift-2013-mdes-gat",
+    "exam": "NIFT",
+    "year": 2013,
+    "program": "M.Des (GAT)",
+    "title": "NIFT M.Des 2013 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2013-mdes-gat.pdf",
+    "sizeMb": 6.6,
+    "pages": 20
+  },
+  {
+    "id": "nift-nift-2014-mdes-cat",
+    "exam": "NIFT",
+    "year": 2014,
+    "program": "M.Des (CAT)",
+    "title": "NIFT M.Des 2014 CAT Question Paper",
+    "pdfPath": "/data/nift/nift-2014-mdes-cat.pdf",
+    "sizeMb": 1.4,
+    "pages": 7
+  },
+  {
+    "id": "nift-nift-2015-mdes-cat",
+    "exam": "NIFT",
+    "year": 2015,
+    "program": "M.Des (CAT)",
+    "title": "NIFT M.Des 2015 CAT Question Paper",
+    "pdfPath": "/data/nift/nift-2015-mdes-cat.pdf",
+    "sizeMb": 0.9,
+    "pages": 5
+  },
+  {
+    "id": "nift-nift-2015-mdes-gat",
+    "exam": "NIFT",
+    "year": 2015,
+    "program": "M.Des (GAT)",
+    "title": "NIFT M.Des 2015 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2015-mdes-gat.pdf",
+    "sizeMb": 10.4,
+    "pages": 23
+  },
+  {
+    "id": "nift-nift-2023-mdes-gat",
+    "exam": "NIFT",
+    "year": 2023,
+    "program": "M.Des (GAT)",
+    "title": "NIFT M.Des 2023 GAT (with Answer Key)",
+    "pdfPath": "/data/nift/nift-2023-mdes-gat.pdf",
+    "sizeMb": 1.3,
+    "pages": 40
+  },
+  {
+    "id": "nift-nift-2012-mftech-gat",
+    "exam": "NIFT",
+    "year": 2012,
+    "program": "M.F.Tech",
+    "title": "NIFT M.F.Tech 2012 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2012-mftech-gat.pdf",
+    "sizeMb": 9.6,
+    "pages": 19
+  },
+  {
+    "id": "nift-nift-2013-mftech-gat",
+    "exam": "NIFT",
+    "year": 2013,
+    "program": "M.F.Tech",
+    "title": "NIFT M.F.Tech 2013 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2013-mftech-gat.pdf",
+    "sizeMb": 8.1,
+    "pages": 20
+  },
+  {
+    "id": "nift-nift-2014-mftech-gat",
+    "exam": "NIFT",
+    "year": 2014,
+    "program": "M.F.Tech",
+    "title": "NIFT M.F.Tech 2014 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2014-mftech-gat.pdf",
+    "sizeMb": 10.5,
+    "pages": 21
+  },
+  {
+    "id": "nift-nift-2012-mfm-gat",
+    "exam": "NIFT",
+    "year": 2012,
+    "program": "MFM",
+    "title": "NIFT MFM 2012 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2012-mfm-gat.pdf",
+    "sizeMb": 9.5,
+    "pages": 19
+  },
+  {
+    "id": "nift-nift-2013-mfm-gat",
+    "exam": "NIFT",
+    "year": 2013,
+    "program": "MFM",
+    "title": "NIFT MFM 2013 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2013-mfm-gat.pdf",
+    "sizeMb": 8.2,
+    "pages": 20
+  },
+  {
+    "id": "nift-nift-2015-mfm-gat",
+    "exam": "NIFT",
+    "year": 2015,
+    "program": "MFM",
+    "title": "NIFT MFM 2015 GAT Question Paper",
+    "pdfPath": "/data/nift/nift-2015-mfm-gat.pdf",
+    "sizeMb": 14.5,
+    "pages": 28
+  },
+  {
+    "id": "nift-nift-2020-mfm",
+    "exam": "NIFT",
+    "year": 2020,
+    "program": "MFM",
+    "title": "NIFT MFM 2020 Question Paper",
+    "pdfPath": "/data/nift/nift-2020-mfm.pdf",
+    "sizeMb": 28.0,
+    "pages": 26
+  },
+  {
+    "id": "arch-nata-2017",
+    "exam": "Architecture & M.Des",
+    "year": 2017,
+    "program": "Architecture",
+    "title": "NATA 2017 Past Year Paper",
+    "pdfPath": "/data/arch/nata-2017.pdf",
+    "sizeMb": 6.2,
+    "pages": 12
+  },
+  {
+    "id": "arch-nata-2018",
+    "exam": "Architecture & M.Des",
+    "year": 2018,
+    "program": "Architecture",
+    "title": "NATA 2018 Past Year Paper",
+    "pdfPath": "/data/arch/nata-2018.pdf",
+    "sizeMb": 8.3,
+    "pages": 14
+  },
+  {
+    "id": "arch-nata-dossier-4",
+    "exam": "Architecture & M.Des",
+    "year": 2019,
+    "program": "Architecture",
+    "title": "NATA Practice Dossier 4",
+    "pdfPath": "/data/arch/nata-dossier-4.pdf",
+    "sizeMb": 4.4,
+    "pages": 40
+  },
+  {
+    "id": "arch-jee-mains-paper2",
+    "exam": "Architecture & M.Des",
+    "year": 2020,
+    "program": "Architecture",
+    "title": "JEE Main Paper 2 (B.Arch/B.Planning)",
+    "pdfPath": "/data/arch/jee-mains-paper2.pdf",
+    "sizeMb": 6.1,
+    "pages": 125
+  },
+  {
+    "id": "arch-mdes-2020",
+    "exam": "Architecture & M.Des",
+    "year": 2020,
+    "program": "M.Des",
+    "title": "M.Des 2020 Question Paper",
+    "pdfPath": "/data/arch/mdes-2020.pdf",
+    "sizeMb": 3.6,
+    "pages": 11
+  },
+  {
+    "id": "arch-mdes-2022-common",
+    "exam": "Architecture & M.Des",
+    "year": 2022,
+    "program": "M.Des",
+    "title": "M.Des 2022 Common Paper",
+    "pdfPath": "/data/arch/mdes-2022-common.pdf",
+    "sizeMb": 0.7,
+    "pages": 10
+  },
+  {
+    "id": "arch-bdes-cat-sample",
+    "exam": "Architecture & M.Des",
+    "year": 2021,
+    "program": "B.Des",
+    "title": "B.Des Creative Ability Test (CAT) Model Paper",
+    "pdfPath": "/data/arch/bdes-cat-sample.pdf",
+    "sizeMb": 0.1,
+    "pages": 4
+  },
+  {
+    "id": "arch-bdes-gat-sample",
+    "exam": "Architecture & M.Des",
+    "year": 2021,
+    "program": "B.Des",
+    "title": "B.Des General Ability Test (GAT) Model Paper",
+    "pdfPath": "/data/arch/bdes-gat-sample.pdf",
+    "sizeMb": 0.1,
+    "pages": 18
+  },
+  {
+    "id": "arch-mdes-cat-sample",
+    "exam": "Architecture & M.Des",
+    "year": 2021,
+    "program": "M.Des",
+    "title": "M.Des Creative Ability Test (CAT) Model Paper",
+    "pdfPath": "/data/arch/mdes-cat-sample.pdf",
+    "sizeMb": 0.1,
+    "pages": 5
+  },
+  {
+    "id": "arch-mdes-gat-sample",
+    "exam": "Architecture & M.Des",
+    "year": 2021,
+    "program": "M.Des",
+    "title": "M.Des General Ability Test (GAT) Model Paper",
+    "pdfPath": "/data/arch/mdes-gat-sample.pdf",
+    "sizeMb": 0.1,
+    "pages": 17
+  },
+  {
+    "id": "arch-mfm-gat-sample",
+    "exam": "Architecture & M.Des",
+    "year": 2021,
+    "program": "MFM",
+    "title": "MFM General Ability Test (GAT) Model Paper",
+    "pdfPath": "/data/arch/mfm-gat-sample.pdf",
+    "sizeMb": 0.1,
+    "pages": 24
+  },
+  {
+    "id": "arch-mftech-gat-sample",
+    "exam": "Architecture & M.Des",
+    "year": 2021,
+    "program": "M.F.Tech",
+    "title": "M.F.Tech General Ability Test (GAT) Model Paper",
+    "pdfPath": "/data/arch/mftech-gat-sample.pdf",
+    "sizeMb": 0.1,
+    "pages": 22
+  },
+  {
+    "id": "arch-bdes-test-key-2018",
+    "exam": "Architecture & M.Des",
+    "year": 2018,
+    "program": "B.Des",
+    "title": "B.Des Test Paper with Answer Key 2017-18",
+    "pdfPath": "/data/arch/bdes-test-key-2018.pdf",
+    "sizeMb": 2.3,
+    "pages": 22
+  }
+]

@@ -7,6 +7,8 @@ import {
   RefreshCw,
   Award,
   FileText,
+  Sparkles,
+  Key,
   Clock,
   Timer,
   Play,
@@ -60,6 +62,11 @@ interface HeaderProps {
   isSaving: boolean;
   submitted: boolean;
   hasKeys: boolean;
+  hasOmr?: boolean;
+  docViewMode?: 'paper' | 'key' | 'solution';
+  setDocViewMode?: (mode: 'paper' | 'key' | 'solution') => void;
+  hasSolution?: boolean;
+  hasKey?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -90,7 +97,12 @@ export const Header: React.FC<HeaderProps> = ({
   setIsOmrOpen,
   isSaving,
   submitted,
-  hasKeys
+  hasKeys,
+  hasOmr = true,
+  docViewMode = 'paper',
+  setDocViewMode,
+  hasSolution = false,
+  hasKey = false
 }) => {
   const [showTimerSettings, setShowTimerSettings] = useState(false);
   const [showPaperDropdown, setShowPaperDropdown] = useState(false);
@@ -221,6 +233,43 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
+        {/* 3-Way Document Viewer Switcher (Paper / Key / Solution) */}
+        {(hasKey || hasSolution) && (
+          <div className="doc-view-mode-toggle mono" role="group" aria-label="Document view options">
+            <button 
+              type="button"
+              onClick={() => setDocViewMode?.('paper')}
+              className={`doc-mode-tab ${docViewMode === 'paper' ? 'active' : ''}`}
+              title="View original Question Paper"
+            >
+              <FileText size={11} />
+              <span>Paper</span>
+            </button>
+            {hasKey && (
+              <button 
+                type="button"
+                onClick={() => setDocViewMode?.('key')}
+                className={`doc-mode-tab key ${docViewMode === 'key' ? 'active' : ''}`}
+                title="View official Answer Key"
+              >
+                <Key size={11} />
+                <span>Key</span>
+              </button>
+            )}
+            {hasSolution && (
+              <button 
+                type="button"
+                onClick={() => setDocViewMode?.('solution')}
+                className={`doc-mode-tab sol ${docViewMode === 'solution' ? 'active' : ''}`}
+                title="View detailed annotated Solution"
+              >
+                <Sparkles size={11} />
+                <span>Solution</span>
+              </button>
+            )}
+          </div>
+        )}
+
         <button 
           onClick={() => setDrawMode(!drawMode)} 
           className={`studio-btn ${drawMode ? 'active' : ''}`} 
@@ -233,17 +282,19 @@ export const Header: React.FC<HeaderProps> = ({
           <kbd className="kbd-badge">D</kbd>
         </button>
         
-        <button 
-          onClick={() => { if (hasKeys) setIsOmrOpen(!isOmrOpen); }} 
-          className={`studio-btn ${isOmrOpen ? 'active' : ''} ${!hasKeys ? 'disabled' : ''}`}
-          id="workspace-btn-toggle-omr"
-          title={hasKeys ? "Toggle response sheet panel (S / O)" : "No answer key available for this paper"}
-          aria-label="Toggle response sheet panel"
-        >
-          <FileText size={14} />
-          <span>{isOmrOpen ? 'Hide Response Sheet' : 'Response Sheet'}</span>
-          {hasKeys && <kbd className="kbd-badge">S</kbd>}
-        </button>
+        {hasOmr && (
+          <button 
+            onClick={() => { if (hasKeys) setIsOmrOpen(!isOmrOpen); }} 
+            className={`studio-btn ${isOmrOpen ? 'active' : ''} ${!hasKeys ? 'disabled' : ''}`}
+            id="workspace-btn-toggle-omr"
+            title={hasKeys ? "Toggle response sheet panel (S / O)" : "No answer key available for this paper"}
+            aria-label="Toggle response sheet panel"
+          >
+            <FileText size={14} />
+            <span>{isOmrOpen ? 'Hide Response Sheet' : 'Response Sheet'}</span>
+            {hasKeys && <kbd className="kbd-badge">S</kbd>}
+          </button>
+        )}
       </div>
 
       <div className="toolbar-cluster right">

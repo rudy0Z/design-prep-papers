@@ -130,20 +130,43 @@ button:active { opacity: 0.8; }
   background: var(--surface);
 }
 .filter-tab {
-  height: 26px;
-  padding: 0 12px;
+  height: 28px;
+  padding: 0 10px;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--muted);
   font: 600 11px/1 var(--font-mono);
-  letter-spacing: .08em;
+  letter-spacing: .05em;
   text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 .filter-tab:hover { color: var(--text-secondary); }
 .filter-tab.active {
   background: var(--surface-muted);
   color: var(--text);
+}
+.filter-tab-special {
+  color: #34d399 !important;
+}
+.filter-tab-special.active {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #a7f3d0 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+.filter-tab-badge {
+  font-size: 10px;
+  opacity: 0.75;
+  padding: 1px 5px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.tab-special-icon {
+  color: #34d399;
 }
 
 .search-box {
@@ -2077,12 +2100,69 @@ button:active { opacity: 0.8; }
   flex-direction: column;
 }
 
+/* Section header and download legend */
+.dashboard-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.filter-active-hint {
+  font-size: 11px;
+  font-weight: normal;
+  color: #34d399;
+  margin-left: 8px;
+}
+
+.dashboard-download-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legend-dot.qp { background: #60a5fa; }
+.legend-dot.key { background: #fbbf24; }
+.legend-dot.sol { background: #34d399; box-shadow: 0 0 6px rgba(52, 211, 153, 0.4); }
+
+/* Linear Table Columns Header */
+.linear-table-columns-header {
+  display: grid;
+  grid-template-columns: 28px 125px 95px 1.2fr 215px 72px;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 16px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.22);
+}
+
 .linear-table-row {
   display: grid;
-  grid-template-columns: 28px 1.5fr 1fr 1.2fr auto 68px;
+  grid-template-columns: 28px 125px 95px 1.2fr 215px 72px;
   align-items: center;
-  gap: 16px;
-  padding: 11px 16px;
+  gap: 14px;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--border);
   background: transparent;
   border-left: none;
@@ -2140,7 +2220,71 @@ button:active { opacity: 0.8; }
 .cell-downloads {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
+}
+
+.dl-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dl-pill-qp {
+  color: #93c5fd;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.dl-pill-qp:hover {
+  color: #ffffff;
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.6);
+  transform: translateY(-1px);
+}
+
+.dl-pill-key {
+  color: #fcd34d;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.dl-pill-key:hover {
+  color: #ffffff;
+  background: rgba(245, 158, 11, 0.25);
+  border-color: rgba(245, 158, 11, 0.6);
+  transform: translateY(-1px);
+}
+
+.dl-pill-solution {
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.08);
+}
+
+.dl-pill-solution:hover {
+  color: #ffffff;
+  background: rgba(16, 185, 129, 0.28);
+  border-color: rgba(16, 185, 129, 0.7);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25);
+}
+
+.dl-pill-disabled {
+  color: rgba(255, 255, 255, 0.16);
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.07);
+  padding: 3px 6px;
+  font-size: 10px;
+  user-select: none;
 }
 
 .dl-btn {
@@ -2307,18 +2451,382 @@ button:active { opacity: 0.8; }
 }
 
 /* Mobile Responsiveness Helpers */
+@media (max-width: 960px) {
+  .linear-table-columns-header {
+    grid-template-columns: 28px 110px 1fr 195px 68px;
+  }
+  .linear-table-row {
+    grid-template-columns: 28px 110px 1fr 195px 68px;
+  }
+  .cell-meta, .th-meta {
+    display: none !important;
+  }
+}
+
 @media (max-width: 768px) {
   .hide-mobile {
     display: none !important;
   }
-  .linear-table-row {
-    grid-template-columns: 28px 1fr 68px;
-  }
-  .cell-meta, .cell-progress, .cell-downloads {
+  .linear-table-columns-header {
     display: none !important;
+  }
+  .linear-table-row {
+    grid-template-columns: 26px 1fr auto;
+    gap: 12px;
+    padding: 11px 12px;
+  }
+  .cell-progress, .th-progress {
+    display: none !important;
+  }
+  .cell-downloads {
+    gap: 4px;
+  }
+  .dl-pill {
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+  .dashboard-download-legend {
+    display: none;
   }
 }
 
 
 
 
+
+
+/* -------------------------------------------------------------
+   Main Category Switcher (CEED, NID, NIFT, Arch, Books)
+------------------------------------------------------------- */
+.main-category-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-translucent);
+  border: 1px solid var(--border);
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.main-category-switcher::-webkit-scrollbar {
+  display: none;
+}
+
+.cat-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.cat-tab:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.cat-tab.active {
+  color: var(--accent);
+  background: rgba(255, 51, 102, 0.08);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(255, 51, 102, 0.25);
+}
+
+.cat-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+}
+
+.cat-tab.active .cat-count-badge {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* -------------------------------------------------------------
+   Document Mode Selector (Header & Tables)
+------------------------------------------------------------- */
+.doc-mode-selector {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.doc-mode-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: var(--radius-xs);
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.doc-mode-tab:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.doc-mode-tab.active {
+  background: var(--surface-hover-solid);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.doc-mode-tab.solution-tab.active {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.doc-mode-tab:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* -------------------------------------------------------------
+   Other Papers Table Layout (NID, NIFT, Arch)
+------------------------------------------------------------- */
+.other-table-columns-header {
+  display: grid;
+  grid-template-columns: 85px 1fr 140px 100px 180px;
+  align-items: center;
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.other-table-row {
+  display: grid;
+  grid-template-columns: 85px 1fr 140px 100px 180px;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.12s ease;
+}
+
+.other-table-row:hover {
+  background: var(--surface-hover);
+}
+
+.program-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  width: fit-content;
+}
+
+.program-badge.bdes {
+  background: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
+}
+
+.program-badge.mdes {
+  background: rgba(168, 85, 247, 0.12);
+  color: #c084fc;
+}
+
+.program-badge.bftech, .program-badge.mftech {
+  background: rgba(236, 72, 153, 0.12);
+  color: #f472b6;
+}
+
+.program-badge.nata, .program-badge.jee {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+}
+
+.read-paper-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  background: var(--surface-hover-solid);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.read-paper-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(255, 51, 102, 0.08);
+}
+
+/* -------------------------------------------------------------
+   Design Books Card Grid Layout
+------------------------------------------------------------- */
+.books-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+  padding: 6px 0;
+}
+
+.book-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.book-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 24px -6px rgba(0, 0, 0, 0.45);
+}
+
+.book-cover-wrap {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  background: #18191c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+
+.book-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.25s ease;
+}
+
+.book-card:hover .book-cover-img {
+  transform: scale(1.03);
+}
+
+.book-category-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(15, 17, 23, 0.85);
+  color: #fbbf24;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.book-card-body {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.book-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+  margin: 0 0 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.book-author {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 0 0 10px;
+  font-style: italic;
+}
+
+.book-desc {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted-foreground, #9ca3af);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.book-card-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.book-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.book-stat-item {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+
+.book-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.book-download-btn:hover {
+  background: #ff1a53;
+  box-shadow: 0 2px 8px rgba(255, 51, 102, 0.35);
+  color: #fff;
+}

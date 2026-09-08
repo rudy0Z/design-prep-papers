@@ -6,7 +6,7 @@ import { Pencil, Highlighter, Eraser, Undo2, Redo2, Trash2 } from 'lucide-react'
 import { Header } from './Header';
 import { PdfViewer } from './PdfViewer';
 import { OmrSheet } from './OmrSheet';
-import { Dashboard } from './Dashboard';
+import { Dashboard, OtherPaperInfo, BookItem } from './Dashboard';
 import { storage, Stroke } from '../utils/storage';
 import { AnswerKeyMap, calculateScore, QuestionSection } from '../utils/scoring';
 
@@ -34,14 +34,23 @@ interface PaperData {
   year: number;
   pdfPath: string;
   ansPath: string | null;
+  solutionPath?: string | null;
   sections: QuestionSection[];
   keys: AnswerKeyMap | null;
   pageQuestions?: { [page: string]: number[] };
   totalPages?: number;
+  shift?: string;
+  title?: string;
+  fileSize?: string;
+  category?: string;
+  program?: string;
 }
 
 export const Workspace: React.FC = () => {
   const [papers, setPapers] = useState<PaperData[]>([]);
+  const [otherPapers, setOtherPapers] = useState<OtherPaperInfo[]>([]);
+  const [books, setBooks] = useState<BookItem[]>([]);
+  const [docViewMode, setDocViewMode] = useState<'paper' | 'key' | 'solution'>('paper');
   const [activePaperId, setActivePaperId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('active_paper_id') || '';
@@ -81,35 +90,74 @@ export const Workspace: React.FC = () => {
   const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
   const [dashboardKey, setDashboardKey] = useState(0);
   
-  const currentPaper = papers.find((p) => p.id === activePaperId);
+  const currentPaper = papers.find((p) => p.id === activePaperId) || (() => {
+    const o = otherPapers.find(p => p.id === activePaperId);
+    if (!o) return undefined;
+    return {
+      id: o.id,
+      exam: o.exam,
+      year: o.year,
+      pdfPath: o.pdfPath,
+      ansPath: null,
+      sections: [] as QuestionSection[],
+      keys: null,
+      title: o.title,
+      program: o.program,
+      fileSize: o.sizeMb ? o.sizeMb + ' MB' : undefined
+    } as PaperData;
+  })();
+
+  // Determine active PDF url based on docViewMode
+  const activePdfUrl = React.useMemo(() => {
+    if (!currentPaper) return '';
+    if (docViewMode === 'solution' && currentPaper.solutionPath) {
+      return currentPaper.solutionPath;
+    }
+    if (docViewMode === 'key' && currentPaper.ansPath) {
+      return currentPaper.ansPath;
+    }
+    return currentPaper.pdfPath;
+  }, [currentPaper, docViewMode]);
 
   useEffect(() => {
-    fetch('/data/papers.json')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to load papers');
-        return res.json();
-      })
-      .then((data: PaperData[]) => {
-        const sorted = [...data].sort((a, b) => {
-          if (a.exam !== b.exam) return b.exam.localeCompare(a.exam);
-          return b.year - a.year;
-        });
-        setPapers(sorted);
-        
-        // Read persisted active paper from localStorage
-        const savedPaperId = localStorage.getItem('active_paper_id');
-        if (savedPaperId && sorted.some((p) => p.id === savedPaperId)) {
-          setActivePaperId(savedPaperId);
-        } else {
-          setActivePaperId('');
-          localStorage.removeItem('active_paper_id');
-        }
-        setIsLoadingManifest(false);
-      })
-      .catch((err) => {
-        console.error('Error loading papers list:', err);
-        setIsLoadingManifest(false);
+    Promise.all([
+      fetch('/data/papers.json').then(r => r.ok ? r.json() : []),
+      fetch('/data/other_papers.json').then(r => r.ok ? r.json() : []),
+      fetch('/data/books.json').then(r => r.ok ? r.json() : [])
+    ]).then(([papersData, otherData, booksData]: [PaperData[], OtherPaperInfo[], BookItem[]]) => {
+      const sorted = [...papersData].sort((a, b) => {
+        if (a.exam !== b.exam) return b.exam.localeCompare(a.exam);
+        return b.year - a.year;
       });
+      setPapers(sorted);
+      setOtherPapers(otherData || []);
+      setBooks(booksData || []);
+
+      const allPapers = [...sorted, ...(otherData || []).map(p => ({
+        id: p.id,
+        exam: p.exam,
+        year: p.year,
+        pdfPath: p.pdfPath,
+        ansPath: null,
+        sections: [] as QuestionSection[],
+        keys: null,
+        title: p.title,
+        program: p.program,
+        fileSize: p.sizeMb ? p.sizeMb + ' MB' : undefined
+      }))];
+
+      const savedPaperId = localStorage.getItem('active_paper_id');
+      if (savedPaperId && allPapers.some((p) => p.id === savedPaperId)) {
+        setActivePaperId(savedPaperId);
+      } else {
+        setActivePaperId('');
+        localStorage.removeItem('active_paper_id');
+      }
+      setIsLoadingManifest(false);
+    }).catch((err) => {
+      console.error('Error loading catalogs:', err);
+      setIsLoadingManifest(false);
+    });
   }, []);
 
   useEffect(() => {
@@ -202,8 +250,9 @@ export const Workspace: React.FC = () => {
     return () => clearTimeout(handler);
   }, [timerRemaining, timerElapsed, isTimerRunning, activePaperId]);
 
-  const handleActivePaperChange = (id: string) => {
+  const handleActivePaperChange = (id: string, mode: 'paper' | 'key' | 'solution' = 'paper') => {
     setActivePaperId(id);
+    setDocViewMode(mode);
     setNumPages(1);
     setPageNumber(1);
     setStrokes([]);
@@ -447,8 +496,9 @@ export const Workspace: React.FC = () => {
   const handleTimerElapsedChange = (sec: number) => { setTimerElapsed(sec); localStorage.setItem(`timer_elapsed_${activePaperId}`, String(sec)); };
   const handleTimerDurationChange = (sec: number) => { setTimerDuration(sec); localStorage.setItem(`timer_duration_${activePaperId}`, String(sec)); };
   const handleIsTimerRunningChange = (running: boolean) => { setIsTimerRunning(running); localStorage.setItem(`timer_running_${activePaperId}`, String(running)); };
-  const { score, totalMarks, totalAnswered, totalQuestions } = currentPaper
-    ? calculateScore(answers, currentPaper.sections, currentPaper.keys, currentPaper.exam as 'CEED' | 'UCEED')
+  const hasOmr = Boolean(currentPaper?.sections && currentPaper.sections.length > 0);
+  const { score, totalMarks, totalAnswered, totalQuestions } = (currentPaper && hasOmr)
+    ? calculateScore(answers, currentPaper.sections || [], currentPaper.keys || null, currentPaper.exam as 'CEED' | 'UCEED')
     : { score: null, totalMarks: 0, totalAnswered: 0, totalQuestions: 0 };
 
   if (isLoadingManifest) {
@@ -464,7 +514,15 @@ export const Workspace: React.FC = () => {
   }
 
   if (!activePaperId) {
-    return <Dashboard key={dashboardKey} papers={papers} onSelectPaper={handleActivePaperChange} />;
+    return (
+      <Dashboard
+        key={dashboardKey}
+        papers={papers}
+        otherPapers={otherPapers}
+        books={books}
+        onSelectPaper={handleActivePaperChange}
+      />
+    );
   }
 
   return (
@@ -507,6 +565,11 @@ export const Workspace: React.FC = () => {
         isSaving={isSaving}
         submitted={submitted}
         hasKeys={!!currentPaper?.keys}
+        hasOmr={hasOmr}
+        docViewMode={docViewMode}
+        setDocViewMode={setDocViewMode}
+        hasSolution={Boolean(currentPaper?.solutionPath)}
+        hasKey={Boolean(currentPaper?.ansPath)}
       />
 
       <div className="workspace-grid relative">
@@ -514,7 +577,7 @@ export const Workspace: React.FC = () => {
           {currentPaper ? (
             <>
               <PdfViewer
-                pdfUrl={currentPaper.pdfPath}
+                pdfUrl={activePdfUrl}
                 pageNumber={pageNumber}
                 setPageNumber={handlePageChange}
                 setNumPages={setNumPages}
