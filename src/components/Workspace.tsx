@@ -53,7 +53,8 @@ export const Workspace: React.FC = () => {
   const [docViewMode, setDocViewMode] = useState<'paper' | 'key' | 'solution'>('paper');
   const [activePaperId, setActivePaperId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('active_paper_id') || '';
+      const params = new URLSearchParams(window.location.search);
+      return params.get('paper') || '';
     }
     return '';
   });
@@ -146,18 +147,29 @@ export const Workspace: React.FC = () => {
         fileSize: p.sizeMb ? p.sizeMb + ' MB' : undefined
       }))];
 
-      const savedPaperId = localStorage.getItem('active_paper_id');
-      if (savedPaperId && allPapers.some((p) => p.id === savedPaperId)) {
-        setActivePaperId(savedPaperId);
-      } else {
+      const urlParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('paper') : null;
+      if (urlParam && allPapers.some((p) => p.id === urlParam)) {
+        setActivePaperId(urlParam);
+      } else if (!urlParam) {
         setActivePaperId('');
-        localStorage.removeItem('active_paper_id');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('active_paper_id');
+        }
       }
       setIsLoadingManifest(false);
     }).catch((err) => {
       console.error('Error loading catalogs:', err);
       setIsLoadingManifest(false);
     });
+
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        const p = new URLSearchParams(window.location.search).get('paper') || '';
+        setActivePaperId(p);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   useEffect(() => {
@@ -258,8 +270,18 @@ export const Workspace: React.FC = () => {
     setStrokes([]);
     if (id) {
       localStorage.setItem('active_paper_id', id);
+      if (typeof window !== 'undefined') {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('paper', id);
+        window.history.pushState({ paper: id }, '', currentUrl.toString());
+      }
     } else {
       localStorage.removeItem('active_paper_id');
+      if (typeof window !== 'undefined') {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.delete('paper');
+        window.history.pushState({}, '', currentUrl.pathname);
+      }
       setDashboardKey(k => k + 1);
     }
   };
