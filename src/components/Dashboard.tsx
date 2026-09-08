@@ -219,13 +219,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
     <div className="dashboard-screen">
       {/* Top Header */}
       <div className="dashboard-topbar">
-        <h1 className="dashboard-brand" id="dashboard-brand-title">
-          <AppLogo size={28} />
-          <span>DesignPrep Studio &amp; Library</span>
-        </h1>
+        <div className="dashboard-brand-wrap">
+          <h1 className="dashboard-brand" id="dashboard-brand-title">
+            <AppLogo size={24} />
+            <span className="brand-title">DesignPrep</span>
+            <span className="brand-sub">Studio &amp; Library</span>
+          </h1>
+          <span className="brand-author-badge mono">by rudy</span>
+        </div>
 
         {/* Global Main Category Switcher */}
-        <div className="main-category-switcher mono" role="tablist">
+        <div className="main-category-switcher" role="tablist">
           <button
             onClick={() => setMainTab('ceed_uceed')}
             className={`cat-tab ${mainTab === 'ceed_uceed' ? 'active' : ''}`}
@@ -233,7 +237,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           >
             <Compass size={13} />
             <span>CEED &amp; UCEED</span>
-            <span className="cat-count-badge">{counts.all}</span>
+            <span className="cat-count-badge mono">{counts.all}</span>
           </button>
 
           <button
@@ -242,7 +246,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             role="tab"
           >
             <span>NID</span>
-            <span className="cat-count-badge">{counts.nid}</span>
+            <span className="cat-count-badge mono">{counts.nid}</span>
           </button>
 
           <button
@@ -251,7 +255,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             role="tab"
           >
             <span>NIFT</span>
-            <span className="cat-count-badge">{counts.nift}</span>
+            <span className="cat-count-badge mono">{counts.nift}</span>
           </button>
 
           <button
@@ -260,7 +264,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             role="tab"
           >
             <span>Architecture &amp; M.Des</span>
-            <span className="cat-count-badge">{counts.arch}</span>
+            <span className="cat-count-badge mono">{counts.arch}</span>
           </button>
 
           <button
@@ -270,7 +274,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           >
             <BookOpen size={13} />
             <span>Design Books</span>
-            <span className="cat-count-badge special">{counts.books}</span>
+            <span className="cat-count-badge special mono">{counts.books}</span>
           </button>
         </div>
       </div>
@@ -708,6 +712,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         )}
       </div>
+
+      {/* Dashboard Footer */}
+      <footer className="dashboard-footer">
+        <div className="dashboard-footer-content">
+          <span>DesignPrep Studio &amp; Library</span>
+          <span className="footer-sep">·</span>
+          <span className="mono footer-author">crafted with precision by rudy</span>
+        </div>
+      </footer>
     </div>
   );
 };

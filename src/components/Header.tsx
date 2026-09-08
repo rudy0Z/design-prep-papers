@@ -159,15 +159,16 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="toolbar-cluster">
         <button 
           onClick={() => setActivePaperId('')} 
-          className="studio-btn" 
+          className="studio-btn studio-home-btn" 
           id="workspace-btn-back"
-          title="Back to paper selector"
+          title="Back to papers selector dashboard"
           aria-label="Back to papers selector dashboard"
           style={{ gap: '7px' }}
         >
           <AppLogo size={18} />
           <span>Home</span>
         </button>
+        <span className="brand-author-badge mono studio-author-badge">by rudy</span>
 
         {/* Custom Paper Switching Popover */}
         <div ref={dropdownRef} className="custom-select-container" style={{ position: 'relative' }}>
