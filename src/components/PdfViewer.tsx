@@ -229,40 +229,12 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
 
         if (isCancelled) return;
 
-        let pdfSource: any;
-
-        // In production (Vercel), we pass the direct URL to PDF.js.
-        // This enables progressive streaming & on-demand chunking (first page loads instantly!).
-        // In development, Turbopack's hot-reload server has range request bugs that throw 204s,
-        // so we fetch the raw bytes using standard fetch first.
-        if (process.env.NODE_ENV === 'production') {
-          pdfSource = {
-            url: pdfUrl,
-            disableRange: false,
-            disableAutoFetch: false,
-          };
-        } else {
-          const slug = pdfUrl.replace(/^\/data\//, '');
-          const apiUrl = `/api/pdf/${slug}`;
-
-          const response = await fetch(apiUrl, {
-            signal: controller.signal,
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          const arrayBuffer = await response.arrayBuffer();
-
-          if (isCancelled) return;
-
-          if (arrayBuffer.byteLength === 0) {
-            throw new Error(`Received empty buffer from api`);
-          }
-
-          pdfSource = { data: arrayBuffer };
-        }
+        // Pass direct URL to PDF.js for fast progressive streaming & on-demand chunking
+        const pdfSource = {
+          url: pdfUrl,
+          disableRange: false,
+          disableAutoFetch: false,
+        };
 
         const loadingTask = pdfjs.getDocument(pdfSource);
         const pdf = await loadingTask.promise;
