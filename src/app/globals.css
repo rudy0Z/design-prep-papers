@@ -2560,46 +2560,59 @@ button:active { opacity: 0.8; }
 }
 
 /* -------------------------------------------------------------
-   Document Mode Selector (Header & Tables)
+   Document Mode Selector (Studio Header Viewer Switcher)
 ------------------------------------------------------------- */
-.doc-mode-selector {
+.doc-view-mode-toggle {
   display: inline-flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--border);
+  background: rgba(10, 10, 12, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-sm);
-  padding: 2px;
-  gap: 2px;
+  padding: 3px;
+  gap: 3px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 .doc-mode-tab {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 9px;
+  padding: 4px 10px;
   border-radius: var(--radius-xs);
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
   color: var(--muted);
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
+  user-select: none;
 }
 
 .doc-mode-tab:hover:not(:disabled) {
   color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .doc-mode-tab.active {
-  background: var(--surface-hover-solid);
+  background: rgba(255, 255, 255, 0.1);
   color: var(--text);
   font-weight: 600;
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.doc-mode-tab.solution-tab.active {
+.doc-mode-tab.key.active {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.doc-mode-tab.sol.active {
   color: #10b981;
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(16, 185, 129, 0.35);
 }
 
 .doc-mode-tab:disabled {

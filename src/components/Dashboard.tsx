@@ -51,7 +51,6 @@ interface DashboardProps {
 }
 
 type MainTab = 'ceed_uceed' | 'nid' | 'nift' | 'arch' | 'books';
-type DocMode = 'paper' | 'key' | 'solution';
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
   papers, 
@@ -62,7 +61,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [mainTab, setMainTab] = useState<MainTab>('ceed_uceed');
   
   // CEED & UCEED view state
-  const [docMode, setDocMode] = useState<DocMode>('paper');
   const [examFilter, setExamFilter] = useState<'all' | 'uceed' | 'ceed' | 'solutions'>('all');
   const [search, setSearch] = useState('');
   
@@ -134,11 +132,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         matchFilter = p.exam.toLowerCase() === examFilter;
       }
 
-      // If docMode is 'key', check if ansPath exists
-      if (docMode === 'key' && !p.ansPath) {
-        // Still show or filter? Keep showing so users see status
-      }
-
       const cleanSearch = search.trim().toLowerCase();
       if (!cleanSearch) return matchFilter;
 
@@ -155,7 +148,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       return matchFilter && matchSearch;
     });
-  }, [examFilter, papers, search, docMode]);
+  }, [examFilter, papers, search]);
 
   // Group CEED/UCEED by Year
   const groupedCeedUceed = useMemo(() => {
@@ -291,42 +284,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="dashboard-section animate-fade-in">
             {/* Control Bar */}
             <div className="dashboard-subbar">
-              {/* Primary Document Switcher: Paper vs Key vs Solution */}
-              <div className="doc-mode-selector-container">
-                <span className="selector-label mono text-muted">Open Document:</span>
-                <div className="doc-mode-selector mono" role="group" aria-label="Default PDF viewing mode">
-                  <button
-                    type="button"
-                    onClick={() => setDocMode('paper')}
-                    className={`mode-btn ${docMode === 'paper' ? 'active' : ''}`}
-                    title="Clicking a row will open the Question Paper in interactive test mode"
-                  >
-                    <FileText size={12} />
-                    <span>Question Paper</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDocMode('key')}
-                    className={`mode-btn key ${docMode === 'key' ? 'active' : ''}`}
-                    title="Clicking a row will open the Official Answer Key directly in the viewer"
-                  >
-                    <Key size={12} />
-                    <span>Answer Key</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDocMode('solution')}
-                    className={`mode-btn sol ${docMode === 'solution' ? 'active' : ''}`}
-                    title="Clicking a row will open the Detailed Annotated Solution (by Sai Praveen)"
-                  >
-                    <Sparkles size={12} />
-                    <span>Detailed Solution</span>
-                  </button>
-                </div>
-              </div>
-
               {/* Filters & Search */}
-              <div className="dashboard-controls">
+              <div className="dashboard-controls" style={{ width: '100%', justifyContent: 'space-between' }}>
                 <div className="filter-bar">
                   {(
                     [
@@ -368,21 +327,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="dashboard-section-header">
               <div className="dashboard-section-label">
                 Official Papers &amp; Solutions · {filteredCeedUceed.length} paper{filteredCeedUceed.length !== 1 ? 's' : ''}
-                {docMode === 'solution' && (
-                  <span className="mode-active-pill sol">
-                    <Sparkles size={10} /> Opening: Detailed Solutions
-                  </span>
-                )}
-                {docMode === 'key' && (
-                  <span className="mode-active-pill key">
-                    <Key size={10} /> Opening: Official Answer Keys
-                  </span>
-                )}
-                {docMode === 'paper' && (
-                  <span className="mode-active-pill qp">
-                    <FileText size={10} /> Opening: Question Papers
-                  </span>
-                )}
               </div>
               <div className="dashboard-download-legend mono">
                 <span className="legend-item"><span className="legend-dot qp" /> QP: Paper</span>
@@ -400,9 +344,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <span className="th-col th-meta">Breakdown</span>
                   <span className="th-col th-progress">Progress</span>
                   <span className="th-col th-downloads">Quick Downloads (Paper / Key / Sol)</span>
-                  <span className="th-col th-action">
-                    {docMode === 'solution' ? 'Solution' : docMode === 'key' ? 'Key' : 'Practice'}
-                  </span>
+                  <span className="th-col th-action">Practice</span>
                 </div>
 
                 {groupedCeedUceed.map(([year, yearPapers]) => (
@@ -418,24 +360,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         const hasStarted = prog.attempted > 0;
                         const isCompleted = hasStarted && prog.attempted === prog.total;
 
-                        const canOpenTargetDoc =
-                          docMode === 'solution'
-                            ? Boolean(paper.solutionPath)
-                            : docMode === 'key'
-                            ? Boolean(paper.ansPath)
-                            : Boolean(paper.pdfPath);
-
                         return (
                           <button
                             key={paper.id}
                             id={`paper-row-${paper.id}`}
-                            onClick={() => {
-                              if (canOpenTargetDoc) {
-                                onSelectPaper(paper.id, docMode);
-                              } else {
-                                onSelectPaper(paper.id, 'paper');
-                              }
-                            }}
+                            onClick={() => onSelectPaper(paper.id, 'paper')}
                             className={`linear-table-row ${hasStarted ? 'in-progress' : ''}`}
                             aria-label={`Open ${paper.exam} ${paper.year} paper`}
                           >
@@ -524,11 +453,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             </div>
 
                             <div className="cell-action text-muted">
-                              {docMode === 'solution'
-                                ? (paper.solutionPath ? 'View Sol →' : 'No Sol')
-                                : docMode === 'key'
-                                ? (paper.ansPath ? 'View Key →' : 'No Key')
-                                : (hasStarted ? 'Resume →' : 'Start →')}
+                              {hasStarted ? 'Resume →' : 'Start →'}
                             </div>
                           </button>
                         );
